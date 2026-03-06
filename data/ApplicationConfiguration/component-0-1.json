@@ -1,0 +1,66 @@
+{
+  "api": "application",
+  "modelName": "ApplicationConfiguration",
+  "payload": [
+    {
+      "id": "confluenceDocumentationIntegration",
+      "name": "Confluence Documentation Integration",
+      "description": "Integration Caveats:\n\n- You cannot archive pages as currently there is no way to un-archive a page in Confluence. If you no longer want a page delete the page.\n- Each page needs to have a unique name. This means all data models will be prefixed by \"Data Model:\" and it's parent will be named \"Data Models\"",
+      "configSchema": {
+        "type": "object",
+        "properties": {
+          "appDescription": {
+            "type": "string",
+            "title": "Application Description",
+            "inputProps": {
+              "type": "markdown"
+            }
+          },
+          "spaceId": {
+            "type": "integer",
+            "title": "Space ID"
+          },
+          "connection": {
+            "type": "object",
+            "title": "Confluence Connection",
+            "inputProps": {
+              "type": "combobox",
+              "api": "Application",
+              "queryType": "Connection",
+              "labelField": "name",
+              "labelPath": "name",
+              "stateTracking": "full",
+              "multiselect": false,
+              "query": {
+                "fields": [
+                  "connection.id",
+                  "connection.name"
+                ]
+              },
+              "additionalFilter": {
+                "connectorId": {
+                  "_eq": "d7ca2d1a-cc71-47fb-8b26-d316bfaedaf9"
+                }
+              }
+            }
+          }
+        },
+        "required": [
+          "connection",
+          "spaceId"
+        ],
+        "additionalProperties": false
+      },
+      "moduleId": "confluence",
+      "configJson": {
+        "connection": {
+          "id": "selectAConnection",
+          "name": "Select Confluence Connection",
+          "label": "Select Confluence Connection"
+        },
+        "spaceId": 0
+      }
+    }
+  ],
+  "metadata": {}
+}

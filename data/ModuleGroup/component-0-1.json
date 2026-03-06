@@ -1,0 +1,14 @@
+{
+  "api": "application",
+  "modelName": "ModuleGroup",
+  "payload": [
+    {
+      "id": "documentation",
+      "name": "Documentation",
+      "icon": "book"
+    }
+  ],
+  "metadata": {
+    "insertEarly": true
+  }
+}

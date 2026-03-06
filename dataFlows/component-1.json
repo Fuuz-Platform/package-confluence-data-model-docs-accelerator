@@ -1,0 +1,2774 @@
+{
+  "header": {
+    "id": "generateConfluenceDataModelDocumentation",
+    "name": "Generate Confluence Data Model Documentation",
+    "description": "This Data Flow will automatically generate Documentation for the Data Model(s) provided. The documentation will be created under the parent page \"Data Models\". All child pages will be prefixed with \"Data Model: ${Data Model Name}\"",
+    "active": true,
+    "dataFlowTypeId": "System",
+    "moduleId": "confluence"
+  },
+  "version": {
+    "id": "clnw28qon001101846mbvdnod",
+    "number": "0.0.7",
+    "description": "- Removed App Description and Publish Documentation as a required fields",
+    "dataFlowId": "generateConfluenceDataModelDocumentation",
+    "flow": {
+      "id": "clnw28qon001101846mbvdnod",
+      "name": "Generate Confluence Data Model Documentation",
+      "type": "System",
+      "nodes": [
+        {
+          "id": "057863db-4937-481b-9528-96a168c36b98",
+          "name": "Query Data Models",
+          "type": "query",
+          "data": {
+            "api": "application",
+            "variablesTransform": "{\n  \"where\": {\n    \"_or\": [\n      {\n        \"id\": {\n          \"_in\": [$state.context.CONSTANTS.REQUEST.dataModels.id]\n        }\n      },\n      {\n        \"name\": {\n          \"_in\": [$state.context.CONSTANTS.REQUEST.dataModels.name]\n        }\n      }\n    ]\n  }\n}",
+            "nextNodes": [
+              "e4a5254d-9913-4311-afbf-8fb60bcda0ca"
+            ],
+            "query": "query Query(  \n  $where: DataModelWhereInput,\n  $orderBy: [DataModelOrderByInput!],\n  $first: Int,\n  $after: String\n) {  \n  dataModel(where: $where, orderBy: $orderBy, first: $first, after: $after) {\n    edges {\n      node {\n        id\n        name\n        description\n      }\n    }\n  }\n}\n"
+          },
+          "debug": {
+            "breakpointEnabled": false,
+            "publishSubscribeClient": false,
+            "publishToMFGx": false
+          },
+          "logging": {
+            "executionMetrics": false,
+            "executionStarted": false,
+            "executionSucceeded": false,
+            "executionFailed": true,
+            "enableTraceLogging": false
+          }
+        },
+        {
+          "id": "ed86e7ee-fd1d-4b09-941c-f4611c6f7654",
+          "name": "Format Data Model Page",
+          "type": "transform",
+          "data": {
+            "transform": "(\n  $auditFields := [\n    \"createdAt\",\n    \"createdByUserId\",\n    \"createdByUser\",\n    \"updatedAt\",\n    \"updatedByUserId\",\n    \"updatedByUser\"\n  ];\n\n  $headers := [\n    {\n      \"text\": \"Name\"\n    },\n    {\n      \"text\": \"Type\"\n    },\n    {\n      \"text\": \"Required\"\n    },\n    {\n      \"text\": \"Unique\"\n    },\n    {\n      \"text\": \"Description\",\n      \"attrs\": {\n        \"colwidth\": [\n          1195\n        ]\n      }\n    }\n  ];\n  \n  $formatTableHeader := function($text, $attrs){\n    {\n      \"type\": \"tableHeader\",\n      \"attrs\": {\n        \"colspan\": 1,\n        \"rowspan\": 1,\n        \"colwidth\": [\n          $isNilOrEmpty($attrs.colwidth) ? 150 : $attrs.colwidth\n        ]\n      },\n      \"content\": [\n        {\n          \"type\": \"paragraph\",\n          \"content\": [\n            {\n              \"text\": $text,\n              \"type\": \"text\",\n              \"marks\": [\n                {\n                  \"type\": \"strong\"\n                }\n              ]\n            }\n          ]\n        }\n      ]\n    }\n  };\n  \n  $formatTableHeaderParagraph := function() {\n    {\n      \"type\": \"tableRow\",\n      \"content\": [\n        $headers.(\n          $formatTableHeader(text, attrs)\n        )\n      ]\n    }\n  };\n \n  $formatTableCell := function($v){\n    {\n      \"type\": \"tableCell\",\n      \"content\": [\n        {\n          \"type\": \"paragraph\",\n          \"content\": [\n            {\n              \"text\": $v,\n              \"type\": \"text\"\n             }\n           ]\n         }\n       ]\n     }\n  };\n  \n  $formatTableCellHeading := function($v){\n    {\n      \"type\": \"tableCell\",\n      \"content\": [\n        {\n          \"type\": \"heading\",\n          \"attrs\":{\n            \"level\": 4\n          },\n          \"content\": [\n            {\n              \"text\": $v,\n              \"type\": \"text\"\n             }\n           ]\n         }\n       ]\n     }\n  };\n  \n  $formatTableRowParagraph := function($v) {  \n    {\n      \"type\": \"tableRow\",\n      \"content\": [\n        $formatTableCellHeading($v.name),\n        $formatTableCell($v.metadata.type.base),\n        $formatTableCell($v.metadata.type.nonNull ? \"Yes\" : \"No\"),\n        $formatTableCell($v.metadata.unique ? \"Yes\" : \"No\"),\n        $formatTableCell($v.description)\n      ]\n    }\n  };\n  \n  $createDoc := function($modelDescriptions, $fieldTable,$auditTable){\n    {\n      \"type\": \"doc\",\n      \"content\": [\n        $filter($modelDescriptions,function($v){$isNilOrEmpty($v.text)~>$not}).{ \n          \"type\": \"paragraph\",\n          \"content\": [\n            {\n              \"text\": text,\n              \"type\": \"text\",\n              \"marks\": strong ? [\n                {\n                  \"type\": \"strong\"\n                }\n              ]\n            }\n          ]\n        },\n        {\n          \"type\": \"extension\",\n          \"attrs\": {\n            \"layout\": \"default\",\n            \"extensionType\": \"com.atlassian.confluence.macro.core\",\n            \"extensionKey\": \"toc\",\n            \"parameters\": {\n              \"macroParams\": {},\n              \"macroMetadata\": {\n                \"macroId\": {\n                  \"value\": \"d583e4e2-4794-4159-ab76-58c7743be55c\"\n                },\n                \"schemaVersion\": {\n                  \"value\": \"1\"\n                },\n                \"title\": \"Table of Contents\"\n              }\n            },\n            \"localId\": \"215f8d16-85ee-4bdb-a58e-4825b3d975f3\"\n          }\n        },\n        {\n          \"type\": \"heading\",\n          \"attrs\": {\n            \"level\": 2\n          },\n          \"content\": [\n            {\n              \"text\": \"Table Definition\",\n              \"type\": \"text\"\n            }\n          ]\n        },\n        {\n          \"type\": \"table\",\n          \"content\": $fieldTable\n        },\n        {\n          \"type\": \"heading\",\n          \"attrs\": {\n            \"level\": 2\n          },\n          \"content\": [\n            {\n              \"text\": \"Audit Fields\",\n              \"type\": \"text\"\n            }\n          ]\n        },\n        {\n          \"type\": \"table\",\n          \"content\": $auditTable\n        },\n        {\n          \"type\": \"paragraph\"\n        }\n      ],\n      \"version\": 1\n    }\n  };\n  \n  $filterOutAuditFields := function($fields) {\n    $filter(\n      $fields,\n      function($v){\n        $not($v.name in [$auditFields])\n      }\n    )\n  };\n  \n  $getAuditFields := function($fields) {\n    $filter(\n      $fields,\n      function($v){\n        $v.name in [$auditFields]\n      }\n    )\n  };\n  \n  $formatDataChangeCaptureMessage := function($dataChangeCapture) {\n    (\n      $exposed := $dataChangeCapture.exposed;\n      $retentionDays := $dataChangeCapture.retentionDays;\n      \n      $exposed = true ? \n      \"Data Changes are exposed and will be retained for \" & $retentionDays & \" days\"\n      :\n      \"Data Changes are not enabled on this model\" \n    )  \n  };\n  \n  $state.context ~> | dataModels | {\n    \"pageTitle\": $singularize($state.context.CONSTANTS.CONFLUENCE.parentPageTitle, 'en') & \": \" & name,\n    \"confluenceDocument\": $createDoc(\n      [{\"text\": description, \"strong\": false}, {\"text\": $formatDataChangeCaptureMessage(metadata.mfgx.dataChangeCapture), \"strong\": true}],\n      $append(\n        [$formatTableHeaderParagraph()],\n        $filterOutAuditFields([fields]).(\n          [$formatTableRowParagraph($)]\n        )\n      ),\n      $append(\n        [$formatTableHeaderParagraph()],\n        $getAuditFields([fields]).(\n          [$formatTableRowParagraph($)]\n        )\n      )\n    )\n  } |;\n)",
+            "nextNodes": [
+              "341b036d-e85a-4817-860b-3e6a5a23316e"
+            ]
+          },
+          "debug": {
+            "breakpointEnabled": false,
+            "publishSubscribeClient": false,
+            "publishToMFGx": false
+          },
+          "logging": {
+            "executionMetrics": false,
+            "executionStarted": false,
+            "executionSucceeded": false,
+            "executionFailed": true,
+            "enableTraceLogging": false
+          }
+        },
+        {
+          "id": "58814433-843b-49ff-b90a-7cba805d99c7",
+          "name": "Merge Models To Context",
+          "type": "mergeContext",
+          "data": {
+            "nextNodes": [
+              "97ee53d8-550a-4d41-a147-9e0fdafacbc7"
+            ],
+            "transform": "(\n  $modelMapFiltered := $pick(modelMap,[$state.context.tempDataModels.name])~>$values;\n\n  {\n    \"dataModels\": [\n      $modelMapFiltered~>| $ | (\n        $name := $.name; \n        {\n          \"id\": ($state.context.tempDataModels)[$lowercase(name) = $lowercase($name)].id\n        }\n      ) |\n    ]\n  }\n)"
+          },
+          "debug": {
+            "breakpointEnabled": false,
+            "publishSubscribeClient": false,
+            "publishToMFGx": false
+          },
+          "logging": {
+            "executionMetrics": false,
+            "executionStarted": false,
+            "executionSucceeded": false,
+            "executionFailed": true,
+            "enableTraceLogging": false
+          }
+        },
+        {
+          "id": "f8ae0836-7e1c-4a79-9f73-c74e744d6c53",
+          "name": "Create/Update Confluence Page",
+          "type": "integrateV2",
+          "data": {
+            "requestTransform": "$state.context.dataModels.(\n  $dataModel:= $; \n  $page := $state.context.PAGES[dataModel.id = $dataModel.id];\n  $pageExists:= $isNilOrEmpty($page)~>$not;\n  {\n    \"method\": $pageExists ? \"put\" : \"post\",\n    \"path\": \"/wiki/api/v2/pages\" & ($pageExists ? \"/\" & $page.id),\n    \"body\": {\n      \"id\": $string($page.id),\n      \"spaceId\": $string($state.context.CONSTANTS.CONFLUENCE.spaceId),\n      \"status\": \"current\",\n      \"title\": pageTitle,\n      \"parentId\": $state.context.CONSTANTS.CONFLUENCE.parentPage.id,\n      \"body\": {        \n        \"value\": $jsonStringify(confluenceDocument),\n        \"representation\": \"atlas_doc_format\"\n      },\n      \"version\": $pageExists ? {\n        \"number\": $page.version.number + 1,\n        \"message\": \"Updated By Fuuz Automation\"\n      }\n    }\n  }\n)",
+            "responseTransform": "$",
+            "returnErrors": false,
+            "degreeOfParallelism": 10,
+            "connectionNameTransform": "$state.context.CONSTANTS.CONFLUENCE.connectionName",
+            "nextNodes": [
+              "5102e3b9-1698-45a8-878d-5e37dc3f7f6d"
+            ]
+          },
+          "debug": {
+            "breakpointEnabled": true,
+            "publishSubscribeClient": false,
+            "publishToMFGx": false
+          },
+          "logging": {
+            "executionMetrics": false,
+            "executionStarted": false,
+            "executionSucceeded": false,
+            "executionFailed": true,
+            "enableTraceLogging": false
+          }
+        },
+        {
+          "id": "341b036d-e85a-4817-860b-3e6a5a23316e",
+          "name": "Reset Context",
+          "type": "setContext",
+          "data": {
+            "nextNodes": [
+              "1e71cca6-6834-4da7-b4d2-b6b85eaa4a39"
+            ],
+            "transform": "$"
+          },
+          "debug": {
+            "breakpointEnabled": false,
+            "publishSubscribeClient": false,
+            "publishToMFGx": false
+          },
+          "logging": {
+            "executionMetrics": false,
+            "executionStarted": false,
+            "executionSucceeded": false,
+            "executionFailed": true,
+            "enableTraceLogging": false
+          }
+        },
+        {
+          "id": "e59d2f2f-c733-4295-9b6a-c0164da0ca9e",
+          "name": "Create Constants",
+          "type": "setContext",
+          "data": {
+            "nextNodes": [
+              "56fd5917-7765-4d7d-8dff-ee99e80c81b0"
+            ],
+            "transform": "{\n  \"CONSTANTS\": {\n    \"REQUEST\": $.REQUEST,\n    \"CONFLUENCE\": {\n      \"connectionName\": $appConfig.confluenceDocumentationIntegration.connection.name,\n      \"spaceId\": $appConfig.confluenceDocumentationIntegration.spaceId,\n      \"publishNewDocumentation\": $coalesce([$$.REQUEST.publishNewDocumentation, $appConfig.confluenceDocumentationIntegration.publishNewDocumentation, false]),\n      \"parentPageTitle\": \"Data Models\",\n      \"appDescription\": $appConfig.confluenceDocumentationIntegration.appDescription\n    }\n  }\n}"
+          },
+          "debug": {
+            "breakpointEnabled": false,
+            "publishSubscribeClient": false,
+            "publishToMFGx": false
+          },
+          "logging": {
+            "executionMetrics": false,
+            "executionStarted": false,
+            "executionSucceeded": false,
+            "executionFailed": true,
+            "enableTraceLogging": false
+          }
+        },
+        {
+          "id": "1e71cca6-6834-4da7-b4d2-b6b85eaa4a39",
+          "name": "Get Pages in Confluence Space",
+          "type": "executeFlow",
+          "data": {
+            "nextNodes": [
+              "c00b469c-cfc0-4034-abf6-50ff8ff99075"
+            ],
+            "flowId": "getPagesInConfluenceSpace",
+            "payloadTransform": "{\n  \"REQUEST\": {\n    \"dataModels\": [\n      $state.context.CONSTANTS.REQUEST.dataModels\n    ],\n    \"parentPageTitle\": $state.context.CONSTANTS.CONFLUENCE.parentPageTitle\n  }\n}"
+          },
+          "debug": {
+            "breakpointEnabled": false,
+            "publishSubscribeClient": false,
+            "publishToMFGx": false
+          },
+          "logging": {
+            "executionMetrics": false,
+            "executionStarted": false,
+            "executionSucceeded": false,
+            "executionFailed": true,
+            "enableTraceLogging": false
+          }
+        },
+        {
+          "id": "c00b469c-cfc0-4034-abf6-50ff8ff99075",
+          "name": "Merge Existing Pages Into Context",
+          "type": "mergeContext",
+          "data": {
+            "nextNodes": [
+              "0b36ccc2-03f2-469e-bc87-834c98e5f92e"
+            ],
+            "transform": "{\n  \"PAGES\": PAGES~>|$|(\n    $title := title;\n    {\n      \"dataModel\": $filter(\n        [$state.context.dataModels],\n        function($model){\n          $lowercase($trim($title)) = $lowercase($trim($model.pageTitle))\n        }\n      )[0],\n      \"rootDataModelPage\": $lowercase($trim($title)) = $lowercase($trim($state.context.CONSTANTS.CONFLUENCE.parentPageTitle))\n    }\n  )|\n}"
+          },
+          "debug": {
+            "breakpointEnabled": false,
+            "publishSubscribeClient": false,
+            "publishToMFGx": false
+          },
+          "logging": {
+            "executionMetrics": false,
+            "executionStarted": false,
+            "executionSucceeded": false,
+            "executionFailed": true,
+            "enableTraceLogging": false
+          }
+        },
+        {
+          "id": "0b36ccc2-03f2-469e-bc87-834c98e5f92e",
+          "name": "Does Data Models Page Exist",
+          "type": "ifElse",
+          "data": {
+            "onTrueNextNodes": [
+              "1fdf8755-d768-42a1-8e37-9d2f5820f729"
+            ],
+            "onFalseNextNodes": [
+              "d42547d0-6338-4e6c-9ca4-2d532d23e9f1"
+            ],
+            "transform": "$isNilOrEmpty($state.context.PAGES[rootDataModelPage = true])~>$not"
+          },
+          "debug": {
+            "breakpointEnabled": false,
+            "publishSubscribeClient": false,
+            "publishToMFGx": false
+          },
+          "logging": {
+            "executionMetrics": false,
+            "executionStarted": false,
+            "executionSucceeded": false,
+            "executionFailed": true,
+            "enableTraceLogging": false
+          }
+        },
+        {
+          "id": "1fdf8755-d768-42a1-8e37-9d2f5820f729",
+          "name": "Set ParentID",
+          "type": "mergeContext",
+          "data": {
+            "nextNodes": [
+              "724b6200-4110-4a4a-bbe3-3dd8c91222fb"
+            ],
+            "transform": "{\n  \"CONSTANTS\": {\n    \"CONFLUENCE\": {\n      \"parentPage\": $state.context.PAGES[rootDataModelPage = true] \n    }\n  }\n}"
+          },
+          "debug": {
+            "breakpointEnabled": false,
+            "publishSubscribeClient": false,
+            "publishToMFGx": false
+          },
+          "logging": {
+            "executionMetrics": false,
+            "executionStarted": false,
+            "executionSucceeded": false,
+            "executionFailed": true,
+            "enableTraceLogging": false
+          }
+        },
+        {
+          "id": "d42547d0-6338-4e6c-9ca4-2d532d23e9f1",
+          "name": "Create Data Models Page",
+          "type": "integrateV2",
+          "data": {
+            "requestTransform": "{\n  \"method\": \"post\",\n  \"path\": \"/wiki/api/v2/pages\",\n  \"body\": {\n    \"spaceId\": $state.context.CONSTANTS.CONFLUENCE.spaceId,\n    \"status\": \"current\",\n    \"title\": $state.context.CONSTANTS.CONFLUENCE.parentPageTitle,\n    \"body\": {\n      \"atlas_doc_format\": {\n        \"value\": $jsonStringify(\n          {\n            \"type\":\"doc\",\n            \"content\": [\n              {\n                \"type\": \"paragraph\",\n                \"content\": [\n                  {\n                    \"text\": $state.context.CONSTANTS.CONFLUENCE.appDescription,\n                    \"type\": \"text\"\n                   }\n                 ]\n              }\n            ]\n          }\n        ),\n        \"representation\": \"atlas_doc_format\"\n      }\n    }\n  }\n}",
+            "responseTransform": "$",
+            "returnErrors": false,
+            "degreeOfParallelism": 10,
+            "connectionNameTransform": "$state.context.CONSTANTS.CONFLUENCE.connectionName",
+            "nextNodes": [
+              "a94f0040-a170-4054-b039-71c6cbe8a760"
+            ]
+          },
+          "debug": {
+            "breakpointEnabled": false,
+            "publishSubscribeClient": false,
+            "publishToMFGx": false
+          },
+          "logging": {
+            "executionMetrics": false,
+            "executionStarted": false,
+            "executionSucceeded": false,
+            "executionFailed": true,
+            "enableTraceLogging": false
+          }
+        },
+        {
+          "id": "a94f0040-a170-4054-b039-71c6cbe8a760",
+          "name": "Set ParentID",
+          "type": "mergeContext",
+          "data": {
+            "nextNodes": [
+              "f8ae0836-7e1c-4a79-9f73-c74e744d6c53"
+            ],
+            "transform": "{\n  \"CONSTANTS\": {\n    \"CONFLUENCE\": {\n      \"parentPage\": $[0].body\n    }\n  }\n}"
+          },
+          "debug": {
+            "breakpointEnabled": false,
+            "publishSubscribeClient": false,
+            "publishToMFGx": false
+          },
+          "logging": {
+            "executionMetrics": false,
+            "executionStarted": false,
+            "executionSucceeded": false,
+            "executionFailed": true,
+            "enableTraceLogging": false
+          }
+        },
+        {
+          "id": "d5b7638a-e7e2-4abf-9ffe-ce52f3d9b687",
+          "name": "Request",
+          "type": "request",
+          "data": {
+            "nextNodes": [
+              "e59d2f2f-c733-4295-9b6a-c0164da0ca9e"
+            ]
+          },
+          "debug": {
+            "breakpointEnabled": false,
+            "publishSubscribeClient": false,
+            "publishToMFGx": false
+          },
+          "logging": {
+            "executionMetrics": false,
+            "executionStarted": false,
+            "executionSucceeded": false,
+            "executionFailed": true,
+            "enableTraceLogging": false
+          }
+        },
+        {
+          "id": "5102e3b9-1698-45a8-878d-5e37dc3f7f6d",
+          "name": "Response",
+          "type": "response",
+          "data": {
+            "responseTransform": "$",
+            "nextNodes": []
+          },
+          "debug": {
+            "breakpointEnabled": false,
+            "publishSubscribeClient": false,
+            "publishToMFGx": false
+          },
+          "logging": {
+            "executionMetrics": false,
+            "executionStarted": false,
+            "executionSucceeded": false,
+            "executionFailed": true,
+            "enableTraceLogging": false
+          }
+        },
+        {
+          "id": "94ae64b2-9b4d-462d-99f3-14f034244d4d",
+          "name": "Schedule",
+          "type": "schedule",
+          "data": {
+            "configure": "Open Schedule Editor",
+            "nextNodes": [
+              "e59d2f2f-c733-4295-9b6a-c0164da0ca9e"
+            ]
+          },
+          "debug": {
+            "breakpointEnabled": false,
+            "publishSubscribeClient": false,
+            "publishToMFGx": false
+          },
+          "logging": {
+            "executionMetrics": false,
+            "executionStarted": false,
+            "executionSucceeded": false,
+            "executionFailed": true,
+            "enableTraceLogging": false
+          }
+        },
+        {
+          "id": "609eb435-84ff-484b-bb66-f251ccdc4d7f",
+          "name": "Query Model Map",
+          "type": "query",
+          "data": {
+            "api": "application",
+            "variablesTransform": "{\n  \"where\": {\n    \"name\": {\n      \"_in\": [$state.context.tempDataModels.name]\n    }\n  }\n}",
+            "nextNodes": [
+              "58814433-843b-49ff-b90a-7cba805d99c7"
+            ],
+            "query": "query Query(\n  $where:ModelMapWhereInput  \n) {\n  modelMap(where:$where)\n}\n"
+          },
+          "debug": {
+            "breakpointEnabled": false,
+            "publishSubscribeClient": false,
+            "publishToMFGx": false
+          },
+          "logging": {
+            "executionMetrics": false,
+            "executionStarted": false,
+            "executionSucceeded": false,
+            "executionFailed": true,
+            "enableTraceLogging": false
+          }
+        },
+        {
+          "id": "e4a5254d-9913-4311-afbf-8fb60bcda0ca",
+          "name": "Merge Temp Models ToContext",
+          "type": "mergeContext",
+          "data": {
+            "transform": "{\n  \"tempDataModels\": [dataModel.edges.node]\n}",
+            "nextNodes": [
+              "609eb435-84ff-484b-bb66-f251ccdc4d7f"
+            ]
+          },
+          "debug": {
+            "breakpointEnabled": false,
+            "publishSubscribeClient": false,
+            "publishToMFGx": false
+          },
+          "logging": {
+            "executionMetrics": false,
+            "executionStarted": false,
+            "executionSucceeded": false,
+            "executionFailed": true,
+            "enableTraceLogging": false
+          }
+        },
+        {
+          "id": "97ee53d8-550a-4d41-a147-9e0fdafacbc7",
+          "name": "Remove From Context",
+          "type": "removeFromContext",
+          "data": {
+            "transform": "[\n  \"tempDataModels\"\n]",
+            "nextNodes": [
+              "ed86e7ee-fd1d-4b09-941c-f4611c6f7654"
+            ]
+          },
+          "debug": {
+            "breakpointEnabled": false,
+            "publishSubscribeClient": false,
+            "publishToMFGx": false
+          },
+          "logging": {
+            "executionMetrics": false,
+            "executionStarted": false,
+            "executionSucceeded": false,
+            "executionFailed": true,
+            "enableTraceLogging": false
+          }
+        },
+        {
+          "id": "724b6200-4110-4a4a-bbe3-3dd8c91222fb",
+          "name": "Update Data Models Page",
+          "type": "integrateV2",
+          "data": {
+            "requestTransform": "$state.context.CONSTANTS.CONFLUENCE.parentPage.{\n  \"method\": \"put\",\n  \"path\": \"/wiki/api/v2/pages/\" & id,\n  \"body\": {\n    \"id\": id,\n    \"spaceId\": $state.context.CONSTANTS.CONFLUENCE.spaceId,\n    \"status\": \"current\",\n    \"title\": title,\n    \"version\": {\n      \"number\": version.number + 1,\n      \"message\": \"Auto Generated Update By Fuuz\"\n    },\n    \"body\": {\n      \"value\": $jsonStringify(\n        {\n          \"type\":\"doc\",\n          \"content\": [\n            {\n              \"type\": \"paragraph\",\n              \"content\": [\n                {\n                  \"text\": $state.context.CONSTANTS.CONFLUENCE.appDescription,\n                  \"type\": \"text\"\n                 }\n               ]\n            }\n          ]\n        }\n      ),\n      \"representation\": \"atlas_doc_format\"\n    }\n  }\n}",
+            "responseTransform": "$",
+            "returnErrors": false,
+            "degreeOfParallelism": 10,
+            "connectionNameTransform": "$state.context.CONSTANTS.CONFLUENCE.connectionName",
+            "nextNodes": [
+              "f8ae0836-7e1c-4a79-9f73-c74e744d6c53"
+            ]
+          },
+          "debug": {
+            "breakpointEnabled": false,
+            "publishSubscribeClient": false,
+            "publishToMFGx": false
+          },
+          "logging": {
+            "executionMetrics": false,
+            "executionStarted": false,
+            "executionSucceeded": false,
+            "executionFailed": true,
+            "enableTraceLogging": false
+          }
+        },
+        {
+          "id": "5b9b7883-5bfe-4b2f-86d4-ff740815abeb",
+          "name": "Validate Payload/Context",
+          "type": "validate",
+          "data": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "payload": {
+                  "type": "object",
+                  "properties": {
+                    "REQUEST": {
+                      "type": "object",
+                      "properties": {
+                        "dataModels": {
+                          "type": "array",
+                          "minItems": 1,
+                          "items": {
+                            "type": "object",
+                            "oneOf": [
+                              {
+                                "properties": {
+                                  "name": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "name"
+                                ]
+                              },
+                              {
+                                "properties": {
+                                  "id": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "id"
+                                ]
+                              }
+                            ]
+                          }
+                        }
+                      },
+                      "required": [
+                        "dataModels"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "REQUEST"
+                  ]
+                },
+                "context": {
+                  "type": "object",
+                  "properties": {
+                    "CONSTANTS": {
+                      "type": "object",
+                      "properties": {
+                        "CONFLUENCE": {
+                          "type": "object",
+                          "properties": {
+                            "connectionName": {
+                              "type": "string"
+                            },
+                            "spaceId": {
+                              "type": "integer"
+                            },
+                            "publishNewDocumentation": {
+                              "type": "boolean"
+                            },
+                            "parentPageTitle": {
+                              "type": "string"
+                            },
+                            "appDescription": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "connectionName",
+                            "spaceId",
+                            "parentPageTitle"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "REQUEST",
+                        "CONFLUENCE"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "CONSTANTS"
+                  ]
+                }
+              },
+              "required": [
+                "payload",
+                "context"
+              ]
+            },
+            "nextNodes": [
+              "057863db-4937-481b-9528-96a168c36b98"
+            ]
+          },
+          "debug": {
+            "breakpointEnabled": false,
+            "publishSubscribeClient": false,
+            "publishToMFGx": false
+          },
+          "logging": {
+            "executionMetrics": false,
+            "executionStarted": false,
+            "executionSucceeded": false,
+            "executionFailed": true,
+            "enableTraceLogging": false
+          }
+        },
+        {
+          "id": "56fd5917-7765-4d7d-8dff-ee99e80c81b0",
+          "name": "Format to Payload/Context",
+          "type": "transform",
+          "data": {
+            "nextNodes": [
+              "5b9b7883-5bfe-4b2f-86d4-ff740815abeb"
+            ],
+            "transform": "{\n  \"payload\": $,\n  \"context\": $state.context\n}"
+          },
+          "debug": {
+            "breakpointEnabled": false,
+            "publishSubscribeClient": false,
+            "publishToMFGx": false
+          },
+          "logging": {
+            "executionMetrics": false,
+            "executionStarted": false,
+            "executionSucceeded": false,
+            "executionFailed": true,
+            "enableTraceLogging": false
+          }
+        }
+      ],
+      "version": "0.0.7"
+    },
+    "diagram": {
+      "id": "clnw28qon001101846mbvdnod",
+      "offsetX": 220.25,
+      "offsetY": 92.32,
+      "zoom": 111.66,
+      "gridSize": 5,
+      "layers": [
+        {
+          "id": "e73a6352-1042-4ab3-a68e-af4fb6909803",
+          "type": "diagram-links",
+          "isSvg": true,
+          "transformed": true,
+          "models": {
+            "7d12a483-dce2-4ac1-ac85-829faacaae48": {
+              "points": [
+                {
+                  "id": "24fe397a-d120-4ab3-a0c6-c25aea71d20c",
+                  "type": "point",
+                  "x": 8.98,
+                  "y": 374.73
+                },
+                {
+                  "id": "eb7a921c-c058-436b-9f61-174a627a5859",
+                  "type": "point",
+                  "x": 80,
+                  "y": 304.73
+                }
+              ],
+              "id": "7d12a483-dce2-4ac1-ac85-829faacaae48",
+              "type": "default",
+              "source": "8dd8379f-6000-4e68-a13d-22fd25332472",
+              "sourcePort": "cln0tra9d000f356fzq4p7jjn",
+              "target": "e59d2f2f-c733-4295-9b6a-c0164da0ca9e",
+              "targetPort": "cln0tra9n002d356f9khaieg1",
+              "labels": [],
+              "width": 3,
+              "curvyness": 50
+            },
+            "d13fef37-6d7a-4ced-888c-ac4c72a88088": {
+              "points": [
+                {
+                  "id": "0d3d8879-8849-4fea-8c08-f0af09956f07",
+                  "type": "point",
+                  "selected": true,
+                  "x": 839,
+                  "y": 304.73
+                },
+                {
+                  "id": "edd2d53f-b8f5-4ed3-a6f3-39395637c39e",
+                  "type": "point",
+                  "selected": true,
+                  "x": 865,
+                  "y": 304.73
+                }
+              ],
+              "id": "d13fef37-6d7a-4ced-888c-ac4c72a88088",
+              "type": "default",
+              "selected": false,
+              "source": "057863db-4937-481b-9528-96a168c36b98",
+              "sourcePort": "cln0tra9e000r356fotosvyde",
+              "target": "e4a5254d-9913-4311-afbf-8fb60bcda0ca",
+              "targetPort": "cln0traag005v356fquk481lc",
+              "labels": [],
+              "width": 3,
+              "curvyness": 50
+            },
+            "e86b6c78-7839-4275-a09c-b109f0060f5a": {
+              "points": [
+                {
+                  "id": "7f47ff42-16cf-4c9e-90ae-35c027369be7",
+                  "type": "point",
+                  "selected": true,
+                  "x": 674.44,
+                  "y": 404.73
+                },
+                {
+                  "id": "e9f3ddba-0c95-4e2f-95f2-eb18a7258597",
+                  "type": "point",
+                  "selected": true,
+                  "x": 700,
+                  "y": 404.73
+                }
+              ],
+              "id": "e86b6c78-7839-4275-a09c-b109f0060f5a",
+              "type": "default",
+              "selected": false,
+              "source": "ed86e7ee-fd1d-4b09-941c-f4611c6f7654",
+              "sourcePort": "cln0tra9g0013356fysp2b4iv",
+              "target": "341b036d-e85a-4817-860b-3e6a5a23316e",
+              "targetPort": "cln0tra9l0021356fnflc6qb8",
+              "labels": [],
+              "width": 3,
+              "curvyness": 50
+            },
+            "a9e98d1b-4511-4f83-bbc9-84227dd47a9e": {
+              "points": [
+                {
+                  "id": "1132858d-413e-4245-aa53-c8746bd73b0e",
+                  "type": "point",
+                  "selected": true,
+                  "x": 268.91,
+                  "y": 404.73
+                },
+                {
+                  "id": "57e5b3c3-37cd-4dc8-81f7-772e3ef175f2",
+                  "type": "point",
+                  "selected": true,
+                  "x": 300,
+                  "y": 404.73
+                }
+              ],
+              "id": "a9e98d1b-4511-4f83-bbc9-84227dd47a9e",
+              "type": "default",
+              "selected": false,
+              "source": "58814433-843b-49ff-b90a-7cba805d99c7",
+              "sourcePort": "cln0tra9h001f356f0rm30k6x",
+              "target": "97ee53d8-550a-4d41-a147-9e0fdafacbc7",
+              "targetPort": "cln0traaj0067356fonw64onu",
+              "labels": [],
+              "width": 3,
+              "curvyness": 50
+            },
+            "8a5f55d2-f4fb-4b9b-8d4f-7cd53f6741e8": {
+              "points": [
+                {
+                  "id": "d5fe53d2-b538-45bd-aaec-a27030c9cf8c",
+                  "type": "point",
+                  "selected": true,
+                  "x": 2229.34,
+                  "y": 404.73
+                },
+                {
+                  "id": "95592551-bda7-4861-b9ff-370fcb0421b5",
+                  "type": "point",
+                  "selected": true,
+                  "x": 2250,
+                  "y": 404.73
+                }
+              ],
+              "id": "8a5f55d2-f4fb-4b9b-8d4f-7cd53f6741e8",
+              "type": "default",
+              "selected": false,
+              "source": "f8ae0836-7e1c-4a79-9f73-c74e744d6c53",
+              "sourcePort": "cln0tra9j001r356flauavt8m",
+              "target": "5102e3b9-1698-45a8-878d-5e37dc3f7f6d",
+              "targetPort": "cln0traa80051356fbysblvti",
+              "labels": [],
+              "width": 3,
+              "curvyness": 50
+            },
+            "89375f7b-2024-4936-9f38-ee2969886200": {
+              "points": [
+                {
+                  "id": "c4e9cc2f-26df-4c6d-b8ee-2f525945c93f",
+                  "type": "point",
+                  "selected": true,
+                  "x": 854,
+                  "y": 404.73
+                },
+                {
+                  "id": "6ecab3b4-88a2-4066-a527-6a2c643ca1c5",
+                  "type": "point",
+                  "selected": true,
+                  "x": 885,
+                  "y": 404.73
+                }
+              ],
+              "id": "89375f7b-2024-4936-9f38-ee2969886200",
+              "type": "default",
+              "selected": false,
+              "source": "341b036d-e85a-4817-860b-3e6a5a23316e",
+              "sourcePort": "cln0tra9l0023356fyk71wmlx",
+              "target": "1e71cca6-6834-4da7-b4d2-b6b85eaa4a39",
+              "targetPort": "cln0tra9p002p356fuhkil590",
+              "labels": [],
+              "width": 3,
+              "curvyness": 50
+            },
+            "f2820a80-adf7-4e14-bf58-8b80d6868c73": {
+              "points": [
+                {
+                  "id": "a220a1e5-e8e0-46c8-aa46-d7eff6bb07ab",
+                  "type": "point",
+                  "selected": true,
+                  "x": 1099.5,
+                  "y": 404.73
+                },
+                {
+                  "id": "47937caa-215c-484d-9dbf-273c3f2a8cab",
+                  "type": "point",
+                  "selected": true,
+                  "x": 1130,
+                  "y": 404.73
+                }
+              ],
+              "id": "f2820a80-adf7-4e14-bf58-8b80d6868c73",
+              "type": "default",
+              "selected": false,
+              "source": "1e71cca6-6834-4da7-b4d2-b6b85eaa4a39",
+              "sourcePort": "cln0tra9p002r356fgqnfq0oi",
+              "target": "c00b469c-cfc0-4034-abf6-50ff8ff99075",
+              "targetPort": "cln0tra9s0031356fsj0m4qw0",
+              "labels": [],
+              "width": 3,
+              "curvyness": 50
+            },
+            "d6e5e674-bfb3-4b12-92b7-bf87247c237d": {
+              "points": [
+                {
+                  "id": "1814ed2e-fc80-4bcf-931f-2bccd08823fc",
+                  "type": "point",
+                  "selected": true,
+                  "x": 1361.31,
+                  "y": 404.73
+                },
+                {
+                  "id": "c07dbe4d-1463-45cb-9fe5-9c4f05b32ce6",
+                  "type": "point",
+                  "selected": true,
+                  "x": 1380,
+                  "y": 404.73
+                }
+              ],
+              "id": "d6e5e674-bfb3-4b12-92b7-bf87247c237d",
+              "type": "default",
+              "selected": false,
+              "source": "c00b469c-cfc0-4034-abf6-50ff8ff99075",
+              "sourcePort": "cln0tra9s0033356fcrjlhgjp",
+              "target": "0b36ccc2-03f2-469e-bc87-834c98e5f92e",
+              "targetPort": "cln0tra9y003h356f8lyri1zm",
+              "labels": [],
+              "width": 3,
+              "curvyness": 50
+            },
+            "2827c79e-9858-4bae-a983-ca17c88d6de0": {
+              "points": [
+                {
+                  "id": "6cbe1771-2907-4472-a4c6-493fc748f618",
+                  "type": "point",
+                  "selected": true,
+                  "x": 1583.92,
+                  "y": 404.73
+                },
+                {
+                  "id": "ffdd0bbb-7071-4068-8813-21896306ffb1",
+                  "type": "point",
+                  "selected": true,
+                  "x": 1610,
+                  "y": 404.73
+                }
+              ],
+              "id": "2827c79e-9858-4bae-a983-ca17c88d6de0",
+              "type": "default",
+              "selected": false,
+              "source": "0b36ccc2-03f2-469e-bc87-834c98e5f92e",
+              "sourcePort": "cln0tra9y003j356f65ezz375",
+              "target": "1fdf8755-d768-42a1-8e37-9d2f5820f729",
+              "targetPort": "cln0traa0003v356fyag849sl",
+              "labels": [],
+              "width": 3,
+              "curvyness": 50
+            },
+            "5a288dc9-9cdc-4123-a5f2-f4d29e0cdb98": {
+              "points": [
+                {
+                  "id": "f87b0718-3d19-45ee-b56d-ddd1f229f2bd",
+                  "type": "point",
+                  "selected": true,
+                  "x": 1583.92,
+                  "y": 429.89
+                },
+                {
+                  "id": "09eb8548-12f6-4c58-9313-a74f753eeb73",
+                  "type": "point",
+                  "selected": true,
+                  "x": 1610,
+                  "y": 469.73
+                }
+              ],
+              "id": "5a288dc9-9cdc-4123-a5f2-f4d29e0cdb98",
+              "type": "default",
+              "selected": false,
+              "source": "0b36ccc2-03f2-469e-bc87-834c98e5f92e",
+              "sourcePort": "cln0tra9y003l356flmikmzf3",
+              "target": "d42547d0-6338-4e6c-9ca4-2d532d23e9f1",
+              "targetPort": "cln0traa20047356f5hml8fkq",
+              "labels": [],
+              "width": 3,
+              "curvyness": 50
+            },
+            "cfd24db6-adcd-4677-bc43-db264f9b5788": {
+              "points": [
+                {
+                  "id": "7759f672-fa8f-4b66-80e7-5edcad4df8d6",
+                  "type": "point",
+                  "selected": true,
+                  "x": 1764,
+                  "y": 404.73
+                },
+                {
+                  "id": "370c7e01-518d-47da-a242-7fee5b661961",
+                  "type": "point",
+                  "selected": true,
+                  "x": 1795,
+                  "y": 404.73
+                }
+              ],
+              "id": "cfd24db6-adcd-4677-bc43-db264f9b5788",
+              "type": "default",
+              "selected": false,
+              "source": "1fdf8755-d768-42a1-8e37-9d2f5820f729",
+              "sourcePort": "cln0traa0003x356fg431sppa",
+              "target": "724b6200-4110-4a4a-bbe3-3dd8c91222fb",
+              "targetPort": "cln0traal006j356f2hxk58ua",
+              "labels": [],
+              "width": 3,
+              "curvyness": 50
+            },
+            "d3f8b57e-c6f1-47c0-b0d8-33f413d96407": {
+              "points": [
+                {
+                  "id": "b9cd9a05-48c4-4c75-be43-3553e2cf202b",
+                  "type": "point",
+                  "selected": true,
+                  "x": 1792.31,
+                  "y": 469.73
+                },
+                {
+                  "id": "482ef7ed-9e63-4068-bd19-f847819a49af",
+                  "type": "point",
+                  "selected": true,
+                  "x": 1825,
+                  "y": 469.73
+                }
+              ],
+              "id": "d3f8b57e-c6f1-47c0-b0d8-33f413d96407",
+              "type": "default",
+              "selected": false,
+              "source": "d42547d0-6338-4e6c-9ca4-2d532d23e9f1",
+              "sourcePort": "cln0traa20049356fl8ob21m3",
+              "target": "a94f0040-a170-4054-b039-71c6cbe8a760",
+              "targetPort": "cln0traa4004j356fv0e3dbqw",
+              "labels": [],
+              "width": 3,
+              "curvyness": 50
+            },
+            "32ecafe2-2311-459b-8d36-8d575fd1895a": {
+              "points": [
+                {
+                  "id": "ddd51a18-a266-42f9-b205-d086f3547d4a",
+                  "type": "point",
+                  "selected": true,
+                  "x": 1979,
+                  "y": 469.73
+                },
+                {
+                  "id": "d5a58cca-d723-433c-b248-21243a8186e0",
+                  "type": "point",
+                  "selected": true,
+                  "x": 2010,
+                  "y": 404.73
+                }
+              ],
+              "id": "32ecafe2-2311-459b-8d36-8d575fd1895a",
+              "type": "default",
+              "selected": false,
+              "source": "a94f0040-a170-4054-b039-71c6cbe8a760",
+              "sourcePort": "cln0traa4004l356fdwhprc6j",
+              "target": "f8ae0836-7e1c-4a79-9f73-c74e744d6c53",
+              "targetPort": "cln0tra9j001p356fby9nlcv2",
+              "labels": [],
+              "width": 3,
+              "curvyness": 50
+            },
+            "bfb757d7-3252-4838-905a-045f2de4cd67": {
+              "points": [
+                {
+                  "id": "bd88e5ae-5d74-4ada-9e16-d2dddb634729",
+                  "type": "point",
+                  "x": 9,
+                  "y": 304.73
+                },
+                {
+                  "id": "2d8f6b3d-1c6f-4f63-b224-9d619a6c33ac",
+                  "type": "point",
+                  "x": 80,
+                  "y": 304.73
+                }
+              ],
+              "id": "bfb757d7-3252-4838-905a-045f2de4cd67",
+              "type": "default",
+              "source": "d5b7638a-e7e2-4abf-9ffe-ce52f3d9b687",
+              "sourcePort": "cln0traa6004r356fyjwt3137",
+              "target": "e59d2f2f-c733-4295-9b6a-c0164da0ca9e",
+              "targetPort": "cln0tra9n002d356f9khaieg1",
+              "labels": [],
+              "width": 3,
+              "curvyness": 50
+            },
+            "87984f3e-8216-4861-b85b-d5b526c4b417": {
+              "points": [
+                {
+                  "id": "2f14e730-c584-4c51-b7dc-9ceb56efb7a8",
+                  "type": "point",
+                  "x": 9,
+                  "y": 234.73
+                },
+                {
+                  "id": "24545912-c6fd-4c10-9087-11fb1243e345",
+                  "type": "point",
+                  "x": 80,
+                  "y": 304.73
+                }
+              ],
+              "id": "87984f3e-8216-4861-b85b-d5b526c4b417",
+              "type": "default",
+              "source": "94ae64b2-9b4d-462d-99f3-14f034244d4d",
+              "sourcePort": "cln0traab0059356fj9yycovd",
+              "target": "e59d2f2f-c733-4295-9b6a-c0164da0ca9e",
+              "targetPort": "cln0tra9n002d356f9khaieg1",
+              "labels": [],
+              "width": 3,
+              "curvyness": 50
+            },
+            "1f6e5a99-528f-4b98-b392-e56adfeb3586": {
+              "points": [
+                {
+                  "id": "3162b006-20a4-428f-827a-c0596cfc7891",
+                  "type": "point",
+                  "x": 1264,
+                  "y": 304.73
+                },
+                {
+                  "id": "e027e7cb-c752-44de-9e05-2441c5daa1c5",
+                  "type": "point",
+                  "selected": false,
+                  "x": 1305,
+                  "y": 305
+                },
+                {
+                  "id": "398220e2-997d-4d13-ba13-3a5e5397aeed",
+                  "type": "point",
+                  "selected": false,
+                  "x": 1305,
+                  "y": 340
+                },
+                {
+                  "id": "8453348a-f473-4433-96c1-5611deac841e",
+                  "type": "point",
+                  "selected": false,
+                  "x": 60,
+                  "y": 345
+                },
+                {
+                  "id": "74efbc42-cf05-4457-b752-85d11f6baa75",
+                  "type": "point",
+                  "selected": false,
+                  "x": 60,
+                  "y": 405
+                },
+                {
+                  "id": "d7942947-c89e-4e44-951f-bad4b60d9bbd",
+                  "type": "point",
+                  "x": 85,
+                  "y": 404.73
+                }
+              ],
+              "id": "1f6e5a99-528f-4b98-b392-e56adfeb3586",
+              "type": "default",
+              "source": "609eb435-84ff-484b-bb66-f251ccdc4d7f",
+              "sourcePort": "cln0traad005l356fjvj4xn5c",
+              "target": "58814433-843b-49ff-b90a-7cba805d99c7",
+              "targetPort": "cln0tra9h001d356fntkkbxf3",
+              "labels": [],
+              "width": 3,
+              "curvyness": 50
+            },
+            "ac450ea3-af75-4958-833d-01d2517d177f": {
+              "points": [
+                {
+                  "id": "217c8a0f-efb3-474d-954f-b57f8152e783",
+                  "type": "point",
+                  "selected": true,
+                  "x": 1079.38,
+                  "y": 304.73
+                },
+                {
+                  "id": "65ab8ea9-25ac-4c65-8d1f-daf519d8eeef",
+                  "type": "point",
+                  "selected": true,
+                  "x": 1110,
+                  "y": 304.73
+                }
+              ],
+              "id": "ac450ea3-af75-4958-833d-01d2517d177f",
+              "type": "default",
+              "selected": false,
+              "source": "e4a5254d-9913-4311-afbf-8fb60bcda0ca",
+              "sourcePort": "cln0traag005x356f7uo7wuw0",
+              "target": "609eb435-84ff-484b-bb66-f251ccdc4d7f",
+              "targetPort": "cln0traad005j356f2fe46ozx",
+              "labels": [],
+              "width": 3,
+              "curvyness": 50
+            },
+            "6736dd87-7d9e-4ac8-964b-2c82691159cc": {
+              "points": [
+                {
+                  "id": "44e0092d-3a76-478d-82bb-9bf03aba7b02",
+                  "type": "point",
+                  "selected": true,
+                  "x": 464.69,
+                  "y": 404.73
+                },
+                {
+                  "id": "d3721d5f-03a2-4040-b31b-8490ac62315e",
+                  "type": "point",
+                  "selected": true,
+                  "x": 495,
+                  "y": 404.73
+                }
+              ],
+              "id": "6736dd87-7d9e-4ac8-964b-2c82691159cc",
+              "type": "default",
+              "selected": false,
+              "source": "97ee53d8-550a-4d41-a147-9e0fdafacbc7",
+              "sourcePort": "cln0traaj0069356fspeix4lz",
+              "target": "ed86e7ee-fd1d-4b09-941c-f4611c6f7654",
+              "targetPort": "cln0tra9g0011356f8piixeba",
+              "labels": [],
+              "width": 3,
+              "curvyness": 50
+            },
+            "5942fd83-6155-4431-a1b8-54f90183d83c": {
+              "points": [
+                {
+                  "id": "9074feef-7326-4437-97d9-66af89f50a6a",
+                  "type": "point",
+                  "selected": true,
+                  "x": 1980.47,
+                  "y": 404.73
+                },
+                {
+                  "id": "4477ae2f-d27f-4564-a23b-e57640a2c9de",
+                  "type": "point",
+                  "selected": true,
+                  "x": 2010,
+                  "y": 404.73
+                }
+              ],
+              "id": "5942fd83-6155-4431-a1b8-54f90183d83c",
+              "type": "default",
+              "selected": false,
+              "source": "724b6200-4110-4a4a-bbe3-3dd8c91222fb",
+              "sourcePort": "cln0traal006l356feyevwsed",
+              "target": "f8ae0836-7e1c-4a79-9f73-c74e744d6c53",
+              "targetPort": "cln0tra9j001p356fby9nlcv2",
+              "labels": [],
+              "width": 3,
+              "curvyness": 50
+            },
+            "9fdfb9ca-7e60-44a4-b79f-b0793884b110": {
+              "points": [
+                {
+                  "id": "c5f397d8-d518-47a3-ab7c-bd94ec9f9a7a",
+                  "type": "point",
+                  "x": 234,
+                  "y": 304.73
+                },
+                {
+                  "id": "5243ae5b-e6e8-4e95-ada5-475ecfedfe8c",
+                  "type": "point",
+                  "x": 260,
+                  "y": 304.73
+                }
+              ],
+              "id": "9fdfb9ca-7e60-44a4-b79f-b0793884b110",
+              "type": "default",
+              "selected": false,
+              "source": "e59d2f2f-c733-4295-9b6a-c0164da0ca9e",
+              "sourcePort": "cln0tra9n002f356f7b4k5py7",
+              "target": "56fd5917-7765-4d7d-8dff-ee99e80c81b0",
+              "targetPort": "cln0ue04g00k9356fi5k523r3",
+              "labels": [],
+              "width": 3,
+              "curvyness": 50
+            },
+            "9e90a163-478a-4c84-8e33-360f3fefc436": {
+              "points": [
+                {
+                  "id": "5e29d8be-5e40-44d3-8594-956d81737ce0",
+                  "type": "point",
+                  "x": 451.22,
+                  "y": 304.73
+                },
+                {
+                  "id": "272914ae-a1ac-47c6-a1a8-e17a724318e4",
+                  "type": "point",
+                  "x": 480,
+                  "y": 304.73
+                }
+              ],
+              "id": "9e90a163-478a-4c84-8e33-360f3fefc436",
+              "type": "default",
+              "selected": false,
+              "source": "56fd5917-7765-4d7d-8dff-ee99e80c81b0",
+              "sourcePort": "cln0ue04g00kb356f36fwtt7e",
+              "target": "5b9b7883-5bfe-4b2f-86d4-ff740815abeb",
+              "targetPort": "cln0udr0c00jw356fxl9svush",
+              "labels": [],
+              "width": 3,
+              "curvyness": 50
+            },
+            "92d04deb-f2b4-4f7d-b7b4-fdca6cb8aa3c": {
+              "points": [
+                {
+                  "id": "28a434e2-599b-437d-8659-5a575cfa6b97",
+                  "type": "point",
+                  "x": 662.38,
+                  "y": 304.73
+                },
+                {
+                  "id": "e063edcc-fdf0-4f13-a984-10b76c79b00b",
+                  "type": "point",
+                  "x": 685,
+                  "y": 304.73
+                }
+              ],
+              "id": "92d04deb-f2b4-4f7d-b7b4-fdca6cb8aa3c",
+              "type": "default",
+              "selected": false,
+              "source": "5b9b7883-5bfe-4b2f-86d4-ff740815abeb",
+              "sourcePort": "cln0udr0c00jy356fetnayx58",
+              "target": "057863db-4937-481b-9528-96a168c36b98",
+              "targetPort": "cln0tra9e000p356fz7unkwie",
+              "labels": [],
+              "width": 3,
+              "curvyness": 50
+            },
+            "181664ba-2040-44d3-bd79-0bd11c1ae86d": {
+              "points": [
+                {
+                  "id": "c9abe5de-bf2f-4fb0-aea3-52d1b0da55d2",
+                  "type": "point",
+                  "x": 8.98,
+                  "y": 439.73
+                },
+                {
+                  "id": "5c0f2a80-51c7-41b6-8217-4c8989ee9310",
+                  "type": "point",
+                  "x": 80,
+                  "y": 304.73
+                }
+              ],
+              "id": "181664ba-2040-44d3-bd79-0bd11c1ae86d",
+              "type": "default",
+              "selected": false,
+              "source": "be05c93c-3e27-440d-a122-8f339c328b6f",
+              "sourcePort": "cln0umarp00v8356f02avqi89",
+              "target": "e59d2f2f-c733-4295-9b6a-c0164da0ca9e",
+              "targetPort": "cln0tra9n002d356f9khaieg1",
+              "labels": [],
+              "width": 3,
+              "curvyness": 50
+            },
+            "2f41ac80-9f13-44ea-9e3c-1bbe620d0b95": {
+              "points": [
+                {
+                  "id": "5fce463f-e18a-4739-9b42-f8692c029cad",
+                  "type": "point",
+                  "x": 58.14,
+                  "y": 504.73
+                },
+                {
+                  "id": "9f2b860b-739b-4981-8501-ca7765c5b66d",
+                  "type": "point",
+                  "x": 80,
+                  "y": 304.73
+                }
+              ],
+              "id": "2f41ac80-9f13-44ea-9e3c-1bbe620d0b95",
+              "type": "default",
+              "selected": false,
+              "source": "7f93e12a-d4bf-40ce-a075-07f03c6d8d77",
+              "sourcePort": "cln0unigt00xo356fhq1gggfo",
+              "target": "e59d2f2f-c733-4295-9b6a-c0164da0ca9e",
+              "targetPort": "cln0tra9n002d356f9khaieg1",
+              "labels": [],
+              "width": 3,
+              "curvyness": 50
+            }
+          }
+        },
+        {
+          "id": "c8b1f747-8a7c-44cc-b3c9-ccddb3304957",
+          "type": "diagram-nodes",
+          "isSvg": false,
+          "transformed": true,
+          "models": {
+            "8dd8379f-6000-4e68-a13d-22fd25332472": {
+              "id": "8dd8379f-6000-4e68-a13d-22fd25332472",
+              "type": "debugSource",
+              "selected": false,
+              "x": -145,
+              "y": 335,
+              "ports": [
+                {
+                  "id": "cln0tra9d000f356fzq4p7jjn",
+                  "type": "default",
+                  "x": 0.98,
+                  "y": 366.73,
+                  "name": "cln0tra9d000g356fk5ngd5m2",
+                  "parentNode": "8dd8379f-6000-4e68-a13d-22fd25332472",
+                  "links": [
+                    "7d12a483-dce2-4ac1-ac85-829faacaae48"
+                  ],
+                  "in": false,
+                  "groupIndex": null,
+                  "groupPath": null,
+                  "fieldLabel": "Output",
+                  "fieldPath": "data.nextNodes"
+                }
+              ],
+              "data": {
+                "payload": {
+                  "REQUEST": {
+                    "dataModels": [
+                      {
+                        "name": "AllFieldsModel"
+                      }
+                    ]
+                  }
+                },
+                "context": {},
+                "nextNodes": [
+                  "e59d2f2f-c733-4295-9b6a-c0164da0ca9e"
+                ]
+              },
+              "debug": {
+                "breakpointEnabled": false,
+                "publishSubscribeClient": false,
+                "publishToMFGx": false
+              },
+              "logging": {
+                "executionMetrics": false,
+                "executionStarted": false,
+                "executionSucceeded": false,
+                "executionFailed": true,
+                "enableTraceLogging": false
+              },
+              "name": "Source"
+            },
+            "057863db-4937-481b-9528-96a168c36b98": {
+              "id": "057863db-4937-481b-9528-96a168c36b98",
+              "type": "query",
+              "selected": false,
+              "x": 685,
+              "y": 265,
+              "ports": [
+                {
+                  "id": "cln0tra9e000p356fz7unkwie",
+                  "type": "default",
+                  "x": 677,
+                  "y": 296.73,
+                  "name": "cln0tra9e000q356frusucnv0",
+                  "parentNode": "057863db-4937-481b-9528-96a168c36b98",
+                  "links": [
+                    "92d04deb-f2b4-4f7d-b7b4-fdca6cb8aa3c"
+                  ],
+                  "in": true
+                },
+                {
+                  "id": "cln0tra9e000r356fotosvyde",
+                  "type": "default",
+                  "x": 831,
+                  "y": 296.73,
+                  "name": "cln0tra9e000s356fwiajke3x",
+                  "parentNode": "057863db-4937-481b-9528-96a168c36b98",
+                  "links": [
+                    "d13fef37-6d7a-4ced-888c-ac4c72a88088"
+                  ],
+                  "in": false,
+                  "groupIndex": null,
+                  "groupPath": null,
+                  "fieldLabel": "Output",
+                  "fieldPath": "data.nextNodes"
+                }
+              ],
+              "data": {
+                "api": "application",
+                "variablesTransform": "{\n  \"where\": {\n    \"_or\": [\n      {\n        \"id\": {\n          \"_in\": [$state.context.CONSTANTS.REQUEST.dataModels.id]\n        }\n      },\n      {\n        \"name\": {\n          \"_in\": [$state.context.CONSTANTS.REQUEST.dataModels.name]\n        }\n      }\n    ]\n  }\n}",
+                "nextNodes": [
+                  "e4a5254d-9913-4311-afbf-8fb60bcda0ca"
+                ],
+                "query": "query Query(  \n  $where: DataModelWhereInput,\n  $orderBy: [DataModelOrderByInput!],\n  $first: Int,\n  $after: String\n) {  \n  dataModel(where: $where, orderBy: $orderBy, first: $first, after: $after) {\n    edges {\n      node {\n        id\n        name\n        description\n      }\n    }\n  }\n}\n"
+              },
+              "debug": {
+                "breakpointEnabled": false,
+                "publishSubscribeClient": false,
+                "publishToMFGx": false
+              },
+              "logging": {
+                "executionMetrics": false,
+                "executionStarted": false,
+                "executionSucceeded": false,
+                "executionFailed": true,
+                "enableTraceLogging": false
+              },
+              "name": "Query Data Models",
+              "note": "First lets pull the Data models so regardless of whether an ID or Name is used we have the common names for them. We can later add the ID to the modelmap for reference if required"
+            },
+            "ed86e7ee-fd1d-4b09-941c-f4611c6f7654": {
+              "id": "ed86e7ee-fd1d-4b09-941c-f4611c6f7654",
+              "type": "transform",
+              "selected": false,
+              "x": 495,
+              "y": 365,
+              "ports": [
+                {
+                  "id": "cln0tra9g0011356f8piixeba",
+                  "type": "default",
+                  "x": 487,
+                  "y": 396.73,
+                  "name": "cln0tra9g0012356fsrlgmaz5",
+                  "parentNode": "ed86e7ee-fd1d-4b09-941c-f4611c6f7654",
+                  "links": [
+                    "6736dd87-7d9e-4ac8-964b-2c82691159cc"
+                  ],
+                  "in": true
+                },
+                {
+                  "id": "cln0tra9g0013356fysp2b4iv",
+                  "type": "default",
+                  "x": 666.44,
+                  "y": 396.73,
+                  "name": "cln0tra9g0014356fp3xla2zg",
+                  "parentNode": "ed86e7ee-fd1d-4b09-941c-f4611c6f7654",
+                  "links": [
+                    "e86b6c78-7839-4275-a09c-b109f0060f5a"
+                  ],
+                  "in": false,
+                  "groupIndex": null,
+                  "groupPath": null,
+                  "fieldLabel": "Output",
+                  "fieldPath": "data.nextNodes"
+                }
+              ],
+              "data": {
+                "transform": "(\n  $auditFields := [\n    \"createdAt\",\n    \"createdByUserId\",\n    \"createdByUser\",\n    \"updatedAt\",\n    \"updatedByUserId\",\n    \"updatedByUser\"\n  ];\n\n  $headers := [\n    {\n      \"text\": \"Name\"\n    },\n    {\n      \"text\": \"Type\"\n    },\n    {\n      \"text\": \"Required\"\n    },\n    {\n      \"text\": \"Unique\"\n    },\n    {\n      \"text\": \"Description\",\n      \"attrs\": {\n        \"colwidth\": [\n          1195\n        ]\n      }\n    }\n  ];\n  \n  $formatTableHeader := function($text, $attrs){\n    {\n      \"type\": \"tableHeader\",\n      \"attrs\": {\n        \"colspan\": 1,\n        \"rowspan\": 1,\n        \"colwidth\": [\n          $isNilOrEmpty($attrs.colwidth) ? 150 : $attrs.colwidth\n        ]\n      },\n      \"content\": [\n        {\n          \"type\": \"paragraph\",\n          \"content\": [\n            {\n              \"text\": $text,\n              \"type\": \"text\",\n              \"marks\": [\n                {\n                  \"type\": \"strong\"\n                }\n              ]\n            }\n          ]\n        }\n      ]\n    }\n  };\n  \n  $formatTableHeaderParagraph := function() {\n    {\n      \"type\": \"tableRow\",\n      \"content\": [\n        $headers.(\n          $formatTableHeader(text, attrs)\n        )\n      ]\n    }\n  };\n \n  $formatTableCell := function($v){\n    {\n      \"type\": \"tableCell\",\n      \"content\": [\n        {\n          \"type\": \"paragraph\",\n          \"content\": [\n            {\n              \"text\": $v,\n              \"type\": \"text\"\n             }\n           ]\n         }\n       ]\n     }\n  };\n  \n  $formatTableCellHeading := function($v){\n    {\n      \"type\": \"tableCell\",\n      \"content\": [\n        {\n          \"type\": \"heading\",\n          \"attrs\":{\n            \"level\": 4\n          },\n          \"content\": [\n            {\n              \"text\": $v,\n              \"type\": \"text\"\n             }\n           ]\n         }\n       ]\n     }\n  };\n  \n  $formatTableRowParagraph := function($v) {  \n    {\n      \"type\": \"tableRow\",\n      \"content\": [\n        $formatTableCellHeading($v.name),\n        $formatTableCell($v.metadata.type.base),\n        $formatTableCell($v.metadata.type.nonNull ? \"Yes\" : \"No\"),\n        $formatTableCell($v.metadata.unique ? \"Yes\" : \"No\"),\n        $formatTableCell($v.description)\n      ]\n    }\n  };\n  \n  $createDoc := function($modelDescriptions, $fieldTable,$auditTable){\n    {\n      \"type\": \"doc\",\n      \"content\": [\n        $filter($modelDescriptions,function($v){$isNilOrEmpty($v.text)~>$not}).{ \n          \"type\": \"paragraph\",\n          \"content\": [\n            {\n              \"text\": text,\n              \"type\": \"text\",\n              \"marks\": strong ? [\n                {\n                  \"type\": \"strong\"\n                }\n              ]\n            }\n          ]\n        },\n        {\n          \"type\": \"extension\",\n          \"attrs\": {\n            \"layout\": \"default\",\n            \"extensionType\": \"com.atlassian.confluence.macro.core\",\n            \"extensionKey\": \"toc\",\n            \"parameters\": {\n              \"macroParams\": {},\n              \"macroMetadata\": {\n                \"macroId\": {\n                  \"value\": \"d583e4e2-4794-4159-ab76-58c7743be55c\"\n                },\n                \"schemaVersion\": {\n                  \"value\": \"1\"\n                },\n                \"title\": \"Table of Contents\"\n              }\n            },\n            \"localId\": \"215f8d16-85ee-4bdb-a58e-4825b3d975f3\"\n          }\n        },\n        {\n          \"type\": \"heading\",\n          \"attrs\": {\n            \"level\": 2\n          },\n          \"content\": [\n            {\n              \"text\": \"Table Definition\",\n              \"type\": \"text\"\n            }\n          ]\n        },\n        {\n          \"type\": \"table\",\n          \"content\": $fieldTable\n        },\n        {\n          \"type\": \"heading\",\n          \"attrs\": {\n            \"level\": 2\n          },\n          \"content\": [\n            {\n              \"text\": \"Audit Fields\",\n              \"type\": \"text\"\n            }\n          ]\n        },\n        {\n          \"type\": \"table\",\n          \"content\": $auditTable\n        },\n        {\n          \"type\": \"paragraph\"\n        }\n      ],\n      \"version\": 1\n    }\n  };\n  \n  $filterOutAuditFields := function($fields) {\n    $filter(\n      $fields,\n      function($v){\n        $not($v.name in [$auditFields])\n      }\n    )\n  };\n  \n  $getAuditFields := function($fields) {\n    $filter(\n      $fields,\n      function($v){\n        $v.name in [$auditFields]\n      }\n    )\n  };\n  \n  $formatDataChangeCaptureMessage := function($dataChangeCapture) {\n    (\n      $exposed := $dataChangeCapture.exposed;\n      $retentionDays := $dataChangeCapture.retentionDays;\n      \n      $exposed = true ? \n      \"Data Changes are exposed and will be retained for \" & $retentionDays & \" days\"\n      :\n      \"Data Changes are not enabled on this model\" \n    )  \n  };\n  \n  $state.context ~> | dataModels | {\n    \"pageTitle\": $singularize($state.context.CONSTANTS.CONFLUENCE.parentPageTitle, 'en') & \": \" & name,\n    \"confluenceDocument\": $createDoc(\n      [{\"text\": description, \"strong\": false}, {\"text\": $formatDataChangeCaptureMessage(metadata.mfgx.dataChangeCapture), \"strong\": true}],\n      $append(\n        [$formatTableHeaderParagraph()],\n        $filterOutAuditFields([fields]).(\n          [$formatTableRowParagraph($)]\n        )\n      ),\n      $append(\n        [$formatTableHeaderParagraph()],\n        $getAuditFields([fields]).(\n          [$formatTableRowParagraph($)]\n        )\n      )\n    )\n  } |;\n)",
+                "nextNodes": [
+                  "341b036d-e85a-4817-860b-3e6a5a23316e"
+                ]
+              },
+              "debug": {
+                "breakpointEnabled": false,
+                "publishSubscribeClient": false,
+                "publishToMFGx": false
+              },
+              "logging": {
+                "executionMetrics": false,
+                "executionStarted": false,
+                "executionSucceeded": false,
+                "executionFailed": true,
+                "enableTraceLogging": false
+              },
+              "name": "Format Data Model Page"
+            },
+            "58814433-843b-49ff-b90a-7cba805d99c7": {
+              "id": "58814433-843b-49ff-b90a-7cba805d99c7",
+              "type": "mergeContext",
+              "selected": false,
+              "x": 85,
+              "y": 365,
+              "ports": [
+                {
+                  "id": "cln0tra9h001d356fntkkbxf3",
+                  "type": "default",
+                  "x": 77,
+                  "y": 396.73,
+                  "name": "cln0tra9h001e356fvrns9a2u",
+                  "parentNode": "58814433-843b-49ff-b90a-7cba805d99c7",
+                  "links": [
+                    "1f6e5a99-528f-4b98-b392-e56adfeb3586"
+                  ],
+                  "in": true
+                },
+                {
+                  "id": "cln0tra9h001f356f0rm30k6x",
+                  "type": "default",
+                  "x": 260.91,
+                  "y": 396.73,
+                  "name": "cln0tra9h001g356fk9ls3iyz",
+                  "parentNode": "58814433-843b-49ff-b90a-7cba805d99c7",
+                  "links": [
+                    "a9e98d1b-4511-4f83-bbc9-84227dd47a9e"
+                  ],
+                  "in": false,
+                  "groupIndex": null,
+                  "groupPath": null,
+                  "fieldLabel": "Output",
+                  "fieldPath": "data.nextNodes"
+                }
+              ],
+              "data": {
+                "nextNodes": [
+                  "97ee53d8-550a-4d41-a147-9e0fdafacbc7"
+                ],
+                "transform": "(\n  $modelMapFiltered := $pick(modelMap,[$state.context.tempDataModels.name])~>$values;\n\n  {\n    \"dataModels\": [\n      $modelMapFiltered~>| $ | (\n        $name := $.name; \n        {\n          \"id\": ($state.context.tempDataModels)[$lowercase(name) = $lowercase($name)].id\n        }\n      ) |\n    ]\n  }\n)"
+              },
+              "debug": {
+                "breakpointEnabled": false,
+                "publishSubscribeClient": false,
+                "publishToMFGx": false
+              },
+              "logging": {
+                "executionMetrics": false,
+                "executionStarted": false,
+                "executionSucceeded": false,
+                "executionFailed": true,
+                "enableTraceLogging": false
+              },
+              "name": "Merge Models To Context"
+            },
+            "f8ae0836-7e1c-4a79-9f73-c74e744d6c53": {
+              "id": "f8ae0836-7e1c-4a79-9f73-c74e744d6c53",
+              "type": "integrateV2",
+              "selected": false,
+              "x": 2010,
+              "y": 365,
+              "ports": [
+                {
+                  "id": "cln0tra9j001p356fby9nlcv2",
+                  "type": "default",
+                  "x": 2002,
+                  "y": 396.73,
+                  "name": "cln0tra9j001q356f35ozjxei",
+                  "parentNode": "f8ae0836-7e1c-4a79-9f73-c74e744d6c53",
+                  "links": [
+                    "32ecafe2-2311-459b-8d36-8d575fd1895a",
+                    "5942fd83-6155-4431-a1b8-54f90183d83c"
+                  ],
+                  "in": true,
+                  "fieldLabel": "Payload"
+                },
+                {
+                  "id": "cln0tra9j001r356flauavt8m",
+                  "type": "default",
+                  "x": 2221.34,
+                  "y": 396.73,
+                  "name": "cln0tra9j001s356fn5n4vh8x",
+                  "parentNode": "f8ae0836-7e1c-4a79-9f73-c74e744d6c53",
+                  "links": [
+                    "8a5f55d2-f4fb-4b9b-8d4f-7cd53f6741e8"
+                  ],
+                  "in": false,
+                  "groupIndex": null,
+                  "groupPath": null,
+                  "fieldLabel": "Output",
+                  "fieldPath": "data.nextNodes"
+                }
+              ],
+              "data": {
+                "requestTransform": "$state.context.dataModels.(\n  $dataModel:= $; \n  $page := $state.context.PAGES[dataModel.id = $dataModel.id];\n  $pageExists:= $isNilOrEmpty($page)~>$not;\n  {\n    \"method\": $pageExists ? \"put\" : \"post\",\n    \"path\": \"/wiki/api/v2/pages\" & ($pageExists ? \"/\" & $page.id),\n    \"body\": {\n      \"id\": $string($page.id),\n      \"spaceId\": $string($state.context.CONSTANTS.CONFLUENCE.spaceId),\n      \"status\": \"current\",\n      \"title\": pageTitle,\n      \"parentId\": $state.context.CONSTANTS.CONFLUENCE.parentPage.id,\n      \"body\": {        \n        \"value\": $jsonStringify(confluenceDocument),\n        \"representation\": \"atlas_doc_format\"\n      },\n      \"version\": $pageExists ? {\n        \"number\": $page.version.number + 1,\n        \"message\": \"Updated By Fuuz Automation\"\n      }\n    }\n  }\n)",
+                "responseTransform": "$",
+                "returnErrors": false,
+                "degreeOfParallelism": 10,
+                "connectionNameTransform": "$state.context.CONSTANTS.CONFLUENCE.connectionName",
+                "nextNodes": [
+                  "5102e3b9-1698-45a8-878d-5e37dc3f7f6d"
+                ]
+              },
+              "debug": {
+                "breakpointEnabled": true,
+                "publishSubscribeClient": false,
+                "publishToMFGx": false
+              },
+              "logging": {
+                "executionMetrics": false,
+                "executionStarted": false,
+                "executionSucceeded": false,
+                "executionFailed": true,
+                "enableTraceLogging": false
+              },
+              "name": "Create/Update Confluence Page"
+            },
+            "341b036d-e85a-4817-860b-3e6a5a23316e": {
+              "id": "341b036d-e85a-4817-860b-3e6a5a23316e",
+              "type": "setContext",
+              "selected": false,
+              "x": 700,
+              "y": 365,
+              "ports": [
+                {
+                  "id": "cln0tra9l0021356fnflc6qb8",
+                  "type": "default",
+                  "x": 692,
+                  "y": 396.73,
+                  "name": "cln0tra9l0022356f49ciiufv",
+                  "parentNode": "341b036d-e85a-4817-860b-3e6a5a23316e",
+                  "links": [
+                    "e86b6c78-7839-4275-a09c-b109f0060f5a"
+                  ],
+                  "in": true
+                },
+                {
+                  "id": "cln0tra9l0023356fyk71wmlx",
+                  "type": "default",
+                  "x": 846,
+                  "y": 396.73,
+                  "name": "cln0tra9l0024356fubl4g5xh",
+                  "parentNode": "341b036d-e85a-4817-860b-3e6a5a23316e",
+                  "links": [
+                    "89375f7b-2024-4936-9f38-ee2969886200"
+                  ],
+                  "in": false,
+                  "groupIndex": null,
+                  "groupPath": null,
+                  "fieldLabel": "Output",
+                  "fieldPath": "data.nextNodes"
+                }
+              ],
+              "data": {
+                "nextNodes": [
+                  "1e71cca6-6834-4da7-b4d2-b6b85eaa4a39"
+                ],
+                "transform": "$"
+              },
+              "debug": {
+                "breakpointEnabled": false,
+                "publishSubscribeClient": false,
+                "publishToMFGx": false
+              },
+              "logging": {
+                "executionMetrics": false,
+                "executionStarted": false,
+                "executionSucceeded": false,
+                "executionFailed": true,
+                "enableTraceLogging": false
+              },
+              "name": "Reset Context"
+            },
+            "e59d2f2f-c733-4295-9b6a-c0164da0ca9e": {
+              "id": "e59d2f2f-c733-4295-9b6a-c0164da0ca9e",
+              "type": "setContext",
+              "selected": false,
+              "x": 80,
+              "y": 265,
+              "ports": [
+                {
+                  "id": "cln0tra9n002d356f9khaieg1",
+                  "type": "default",
+                  "x": 72,
+                  "y": 296.73,
+                  "name": "cln0tra9n002e356fzntnr0t3",
+                  "parentNode": "e59d2f2f-c733-4295-9b6a-c0164da0ca9e",
+                  "links": [
+                    "7d12a483-dce2-4ac1-ac85-829faacaae48",
+                    "bfb757d7-3252-4838-905a-045f2de4cd67",
+                    "87984f3e-8216-4861-b85b-d5b526c4b417",
+                    "181664ba-2040-44d3-bd79-0bd11c1ae86d",
+                    "2f41ac80-9f13-44ea-9e3c-1bbe620d0b95"
+                  ],
+                  "in": true
+                },
+                {
+                  "id": "cln0tra9n002f356f7b4k5py7",
+                  "type": "default",
+                  "x": 226,
+                  "y": 296.73,
+                  "name": "cln0tra9n002g356fw9w7c467",
+                  "parentNode": "e59d2f2f-c733-4295-9b6a-c0164da0ca9e",
+                  "links": [
+                    "9fdfb9ca-7e60-44a4-b79f-b0793884b110"
+                  ],
+                  "in": false,
+                  "groupIndex": null,
+                  "groupPath": null,
+                  "fieldLabel": "Output",
+                  "fieldPath": "data.nextNodes"
+                }
+              ],
+              "data": {
+                "nextNodes": [
+                  "56fd5917-7765-4d7d-8dff-ee99e80c81b0"
+                ],
+                "transform": "{\n  \"CONSTANTS\": {\n    \"REQUEST\": $.REQUEST,\n    \"CONFLUENCE\": {\n      \"connectionName\": $appConfig.confluenceDocumentationIntegration.connection.name,\n      \"spaceId\": $appConfig.confluenceDocumentationIntegration.spaceId,\n      \"publishNewDocumentation\": $coalesce([$$.REQUEST.publishNewDocumentation, $appConfig.confluenceDocumentationIntegration.publishNewDocumentation, false]),\n      \"parentPageTitle\": \"Data Models\",\n      \"appDescription\": $appConfig.confluenceDocumentationIntegration.appDescription\n    }\n  }\n}"
+              },
+              "debug": {
+                "breakpointEnabled": false,
+                "publishSubscribeClient": false,
+                "publishToMFGx": false
+              },
+              "logging": {
+                "executionMetrics": false,
+                "executionStarted": false,
+                "executionSucceeded": false,
+                "executionFailed": true,
+                "enableTraceLogging": false
+              },
+              "name": "Create Constants"
+            },
+            "1e71cca6-6834-4da7-b4d2-b6b85eaa4a39": {
+              "id": "1e71cca6-6834-4da7-b4d2-b6b85eaa4a39",
+              "type": "executeFlow",
+              "selected": false,
+              "x": 885,
+              "y": 365,
+              "ports": [
+                {
+                  "id": "cln0tra9p002p356fuhkil590",
+                  "type": "default",
+                  "x": 877,
+                  "y": 396.73,
+                  "name": "cln0tra9p002q356fkdyq8wij",
+                  "parentNode": "1e71cca6-6834-4da7-b4d2-b6b85eaa4a39",
+                  "links": [
+                    "89375f7b-2024-4936-9f38-ee2969886200"
+                  ],
+                  "in": true
+                },
+                {
+                  "id": "cln0tra9p002r356fgqnfq0oi",
+                  "type": "default",
+                  "x": 1091.5,
+                  "y": 396.73,
+                  "name": "cln0tra9p002s356f4gnml2gq",
+                  "parentNode": "1e71cca6-6834-4da7-b4d2-b6b85eaa4a39",
+                  "links": [
+                    "f2820a80-adf7-4e14-bf58-8b80d6868c73"
+                  ],
+                  "in": false,
+                  "groupIndex": null,
+                  "groupPath": null,
+                  "fieldLabel": "Output",
+                  "fieldPath": "data.nextNodes"
+                }
+              ],
+              "data": {
+                "nextNodes": [
+                  "c00b469c-cfc0-4034-abf6-50ff8ff99075"
+                ],
+                "flowId": "getPagesInConfluenceSpace",
+                "payloadTransform": "{\n  \"REQUEST\": {\n    \"dataModels\": [\n      $state.context.CONSTANTS.REQUEST.dataModels\n    ],\n    \"parentPageTitle\": $state.context.CONSTANTS.CONFLUENCE.parentPageTitle\n  }\n}"
+              },
+              "debug": {
+                "breakpointEnabled": false,
+                "publishSubscribeClient": false,
+                "publishToMFGx": false
+              },
+              "logging": {
+                "executionMetrics": false,
+                "executionStarted": false,
+                "executionSucceeded": false,
+                "executionFailed": true,
+                "enableTraceLogging": false
+              },
+              "name": "Get Pages in Confluence Space"
+            },
+            "c00b469c-cfc0-4034-abf6-50ff8ff99075": {
+              "id": "c00b469c-cfc0-4034-abf6-50ff8ff99075",
+              "type": "mergeContext",
+              "selected": false,
+              "x": 1130,
+              "y": 365,
+              "ports": [
+                {
+                  "id": "cln0tra9s0031356fsj0m4qw0",
+                  "type": "default",
+                  "x": 1122,
+                  "y": 396.73,
+                  "name": "cln0tra9s0032356fxwfqdj6c",
+                  "parentNode": "c00b469c-cfc0-4034-abf6-50ff8ff99075",
+                  "links": [
+                    "f2820a80-adf7-4e14-bf58-8b80d6868c73"
+                  ],
+                  "in": true
+                },
+                {
+                  "id": "cln0tra9s0033356fcrjlhgjp",
+                  "type": "default",
+                  "x": 1353.31,
+                  "y": 396.73,
+                  "name": "cln0tra9s0034356f98we56ri",
+                  "parentNode": "c00b469c-cfc0-4034-abf6-50ff8ff99075",
+                  "links": [
+                    "d6e5e674-bfb3-4b12-92b7-bf87247c237d"
+                  ],
+                  "in": false,
+                  "groupIndex": null,
+                  "groupPath": null,
+                  "fieldLabel": "Output",
+                  "fieldPath": "data.nextNodes"
+                }
+              ],
+              "data": {
+                "nextNodes": [
+                  "0b36ccc2-03f2-469e-bc87-834c98e5f92e"
+                ],
+                "transform": "{\n  \"PAGES\": PAGES~>|$|(\n    $title := title;\n    {\n      \"dataModel\": $filter(\n        [$state.context.dataModels],\n        function($model){\n          $lowercase($trim($title)) = $lowercase($trim($model.pageTitle))\n        }\n      )[0],\n      \"rootDataModelPage\": $lowercase($trim($title)) = $lowercase($trim($state.context.CONSTANTS.CONFLUENCE.parentPageTitle))\n    }\n  )|\n}"
+              },
+              "debug": {
+                "breakpointEnabled": false,
+                "publishSubscribeClient": false,
+                "publishToMFGx": false
+              },
+              "logging": {
+                "executionMetrics": false,
+                "executionStarted": false,
+                "executionSucceeded": false,
+                "executionFailed": true,
+                "enableTraceLogging": false
+              },
+              "name": "Merge Existing Pages Into Context"
+            },
+            "0b36ccc2-03f2-469e-bc87-834c98e5f92e": {
+              "id": "0b36ccc2-03f2-469e-bc87-834c98e5f92e",
+              "type": "ifElse",
+              "selected": false,
+              "x": 1380,
+              "y": 365,
+              "ports": [
+                {
+                  "id": "cln0tra9y003h356f8lyri1zm",
+                  "type": "default",
+                  "x": 1372,
+                  "y": 396.73,
+                  "name": "cln0tra9y003i356fukjghfrm",
+                  "parentNode": "0b36ccc2-03f2-469e-bc87-834c98e5f92e",
+                  "links": [
+                    "d6e5e674-bfb3-4b12-92b7-bf87247c237d"
+                  ],
+                  "in": true
+                },
+                {
+                  "id": "cln0tra9y003j356f65ezz375",
+                  "type": "default",
+                  "x": 1575.92,
+                  "y": 396.73,
+                  "name": "cln0tra9y003k356f45mwcqf1",
+                  "parentNode": "0b36ccc2-03f2-469e-bc87-834c98e5f92e",
+                  "links": [
+                    "2827c79e-9858-4bae-a983-ca17c88d6de0"
+                  ],
+                  "in": false,
+                  "groupIndex": null,
+                  "groupPath": null,
+                  "fieldLabel": "True",
+                  "fieldPath": "data.onTrueNextNodes"
+                },
+                {
+                  "id": "cln0tra9y003l356flmikmzf3",
+                  "type": "default",
+                  "x": 1575.92,
+                  "y": 421.89,
+                  "name": "cln0tra9y003m356fkbc29l8g",
+                  "parentNode": "0b36ccc2-03f2-469e-bc87-834c98e5f92e",
+                  "links": [
+                    "5a288dc9-9cdc-4123-a5f2-f4d29e0cdb98"
+                  ],
+                  "in": false,
+                  "groupIndex": null,
+                  "groupPath": null,
+                  "fieldLabel": "False",
+                  "fieldPath": "data.onFalseNextNodes"
+                }
+              ],
+              "data": {
+                "onTrueNextNodes": [
+                  "1fdf8755-d768-42a1-8e37-9d2f5820f729"
+                ],
+                "onFalseNextNodes": [
+                  "d42547d0-6338-4e6c-9ca4-2d532d23e9f1"
+                ],
+                "transform": "$isNilOrEmpty($state.context.PAGES[rootDataModelPage = true])~>$not"
+              },
+              "debug": {
+                "breakpointEnabled": false,
+                "publishSubscribeClient": false,
+                "publishToMFGx": false
+              },
+              "logging": {
+                "executionMetrics": false,
+                "executionStarted": false,
+                "executionSucceeded": false,
+                "executionFailed": true,
+                "enableTraceLogging": false
+              },
+              "name": "Does Data Models Page Exist"
+            },
+            "1fdf8755-d768-42a1-8e37-9d2f5820f729": {
+              "id": "1fdf8755-d768-42a1-8e37-9d2f5820f729",
+              "type": "mergeContext",
+              "selected": false,
+              "x": 1610,
+              "y": 365,
+              "ports": [
+                {
+                  "id": "cln0traa0003v356fyag849sl",
+                  "type": "default",
+                  "x": 1602,
+                  "y": 396.73,
+                  "name": "cln0traa0003w356fgx2l599c",
+                  "parentNode": "1fdf8755-d768-42a1-8e37-9d2f5820f729",
+                  "links": [
+                    "2827c79e-9858-4bae-a983-ca17c88d6de0"
+                  ],
+                  "in": true
+                },
+                {
+                  "id": "cln0traa0003x356fg431sppa",
+                  "type": "default",
+                  "x": 1756,
+                  "y": 396.73,
+                  "name": "cln0traa0003y356fg03m5gev",
+                  "parentNode": "1fdf8755-d768-42a1-8e37-9d2f5820f729",
+                  "links": [
+                    "cfd24db6-adcd-4677-bc43-db264f9b5788"
+                  ],
+                  "in": false,
+                  "groupIndex": null,
+                  "groupPath": null,
+                  "fieldLabel": "Output",
+                  "fieldPath": "data.nextNodes"
+                }
+              ],
+              "data": {
+                "nextNodes": [
+                  "724b6200-4110-4a4a-bbe3-3dd8c91222fb"
+                ],
+                "transform": "{\n  \"CONSTANTS\": {\n    \"CONFLUENCE\": {\n      \"parentPage\": $state.context.PAGES[rootDataModelPage = true] \n    }\n  }\n}"
+              },
+              "debug": {
+                "breakpointEnabled": false,
+                "publishSubscribeClient": false,
+                "publishToMFGx": false
+              },
+              "logging": {
+                "executionMetrics": false,
+                "executionStarted": false,
+                "executionSucceeded": false,
+                "executionFailed": true,
+                "enableTraceLogging": false
+              },
+              "name": "Set ParentID"
+            },
+            "d42547d0-6338-4e6c-9ca4-2d532d23e9f1": {
+              "id": "d42547d0-6338-4e6c-9ca4-2d532d23e9f1",
+              "type": "integrateV2",
+              "selected": false,
+              "x": 1610,
+              "y": 430,
+              "ports": [
+                {
+                  "id": "cln0traa20047356f5hml8fkq",
+                  "type": "default",
+                  "x": 1602,
+                  "y": 461.73,
+                  "name": "cln0traa20048356fo8gs0m9p",
+                  "parentNode": "d42547d0-6338-4e6c-9ca4-2d532d23e9f1",
+                  "links": [
+                    "5a288dc9-9cdc-4123-a5f2-f4d29e0cdb98"
+                  ],
+                  "in": true,
+                  "fieldLabel": "Payload"
+                },
+                {
+                  "id": "cln0traa20049356fl8ob21m3",
+                  "type": "default",
+                  "x": 1784.31,
+                  "y": 461.73,
+                  "name": "cln0traa2004a356fq8jjj3i7",
+                  "parentNode": "d42547d0-6338-4e6c-9ca4-2d532d23e9f1",
+                  "links": [
+                    "d3f8b57e-c6f1-47c0-b0d8-33f413d96407"
+                  ],
+                  "in": false,
+                  "groupIndex": null,
+                  "groupPath": null,
+                  "fieldLabel": "Output",
+                  "fieldPath": "data.nextNodes"
+                }
+              ],
+              "data": {
+                "requestTransform": "{\n  \"method\": \"post\",\n  \"path\": \"/wiki/api/v2/pages\",\n  \"body\": {\n    \"spaceId\": $state.context.CONSTANTS.CONFLUENCE.spaceId,\n    \"status\": \"current\",\n    \"title\": $state.context.CONSTANTS.CONFLUENCE.parentPageTitle,\n    \"body\": {\n      \"atlas_doc_format\": {\n        \"value\": $jsonStringify(\n          {\n            \"type\":\"doc\",\n            \"content\": [\n              {\n                \"type\": \"paragraph\",\n                \"content\": [\n                  {\n                    \"text\": $state.context.CONSTANTS.CONFLUENCE.appDescription,\n                    \"type\": \"text\"\n                   }\n                 ]\n              }\n            ]\n          }\n        ),\n        \"representation\": \"atlas_doc_format\"\n      }\n    }\n  }\n}",
+                "responseTransform": "$",
+                "returnErrors": false,
+                "degreeOfParallelism": 10,
+                "connectionNameTransform": "$state.context.CONSTANTS.CONFLUENCE.connectionName",
+                "nextNodes": [
+                  "a94f0040-a170-4054-b039-71c6cbe8a760"
+                ]
+              },
+              "debug": {
+                "breakpointEnabled": false,
+                "publishSubscribeClient": false,
+                "publishToMFGx": false
+              },
+              "logging": {
+                "executionMetrics": false,
+                "executionStarted": false,
+                "executionSucceeded": false,
+                "executionFailed": true,
+                "enableTraceLogging": false
+              },
+              "name": "Create Data Models Page"
+            },
+            "a94f0040-a170-4054-b039-71c6cbe8a760": {
+              "id": "a94f0040-a170-4054-b039-71c6cbe8a760",
+              "type": "mergeContext",
+              "selected": false,
+              "x": 1825,
+              "y": 430,
+              "ports": [
+                {
+                  "id": "cln0traa4004j356fv0e3dbqw",
+                  "type": "default",
+                  "x": 1817,
+                  "y": 461.73,
+                  "name": "cln0traa4004k356fv7x63soh",
+                  "parentNode": "a94f0040-a170-4054-b039-71c6cbe8a760",
+                  "links": [
+                    "d3f8b57e-c6f1-47c0-b0d8-33f413d96407"
+                  ],
+                  "in": true
+                },
+                {
+                  "id": "cln0traa4004l356fdwhprc6j",
+                  "type": "default",
+                  "x": 1971,
+                  "y": 461.73,
+                  "name": "cln0traa4004m356fj5eaflpl",
+                  "parentNode": "a94f0040-a170-4054-b039-71c6cbe8a760",
+                  "links": [
+                    "32ecafe2-2311-459b-8d36-8d575fd1895a"
+                  ],
+                  "in": false,
+                  "groupIndex": null,
+                  "groupPath": null,
+                  "fieldLabel": "Output",
+                  "fieldPath": "data.nextNodes"
+                }
+              ],
+              "data": {
+                "nextNodes": [
+                  "f8ae0836-7e1c-4a79-9f73-c74e744d6c53"
+                ],
+                "transform": "{\n  \"CONSTANTS\": {\n    \"CONFLUENCE\": {\n      \"parentPage\": $[0].body\n    }\n  }\n}"
+              },
+              "debug": {
+                "breakpointEnabled": false,
+                "publishSubscribeClient": false,
+                "publishToMFGx": false
+              },
+              "logging": {
+                "executionMetrics": false,
+                "executionStarted": false,
+                "executionSucceeded": false,
+                "executionFailed": true,
+                "enableTraceLogging": false
+              },
+              "name": "Set ParentID"
+            },
+            "d5b7638a-e7e2-4abf-9ffe-ce52f3d9b687": {
+              "id": "d5b7638a-e7e2-4abf-9ffe-ce52f3d9b687",
+              "type": "request",
+              "selected": false,
+              "x": -145,
+              "y": 265,
+              "ports": [
+                {
+                  "id": "cln0traa6004r356fyjwt3137",
+                  "type": "default",
+                  "x": 1,
+                  "y": 296.73,
+                  "name": "cln0traa6004s356frwiupao0",
+                  "parentNode": "d5b7638a-e7e2-4abf-9ffe-ce52f3d9b687",
+                  "links": [
+                    "bfb757d7-3252-4838-905a-045f2de4cd67"
+                  ],
+                  "in": false,
+                  "groupIndex": null,
+                  "groupPath": null,
+                  "fieldLabel": "Payload",
+                  "fieldPath": "data.nextNodes"
+                }
+              ],
+              "data": {
+                "nextNodes": [
+                  "e59d2f2f-c733-4295-9b6a-c0164da0ca9e"
+                ]
+              },
+              "debug": {
+                "breakpointEnabled": false,
+                "publishSubscribeClient": false,
+                "publishToMFGx": false
+              },
+              "logging": {
+                "executionMetrics": false,
+                "executionStarted": false,
+                "executionSucceeded": false,
+                "executionFailed": true,
+                "enableTraceLogging": false
+              },
+              "name": "Request"
+            },
+            "5102e3b9-1698-45a8-878d-5e37dc3f7f6d": {
+              "id": "5102e3b9-1698-45a8-878d-5e37dc3f7f6d",
+              "type": "response",
+              "selected": false,
+              "x": 2250,
+              "y": 365,
+              "ports": [
+                {
+                  "id": "cln0traa80051356fbysblvti",
+                  "type": "default",
+                  "x": 2242,
+                  "y": 396.73,
+                  "name": "cln0traa80052356fjqf6dnr3",
+                  "parentNode": "5102e3b9-1698-45a8-878d-5e37dc3f7f6d",
+                  "links": [
+                    "8a5f55d2-f4fb-4b9b-8d4f-7cd53f6741e8"
+                  ],
+                  "in": true,
+                  "fieldLabel": "Response"
+                },
+                {
+                  "id": "cln0traa80053356f3o9pjpx3",
+                  "type": "default",
+                  "x": 2395.98,
+                  "y": 396.73,
+                  "name": "cln0traa80054356f7vhjyzi1",
+                  "parentNode": "5102e3b9-1698-45a8-878d-5e37dc3f7f6d",
+                  "links": [],
+                  "in": false,
+                  "groupIndex": null,
+                  "groupPath": null,
+                  "fieldLabel": "Output",
+                  "fieldPath": "data.nextNodes"
+                }
+              ],
+              "data": {
+                "responseTransform": "$",
+                "nextNodes": []
+              },
+              "debug": {
+                "breakpointEnabled": false,
+                "publishSubscribeClient": false,
+                "publishToMFGx": false
+              },
+              "logging": {
+                "executionMetrics": false,
+                "executionStarted": false,
+                "executionSucceeded": false,
+                "executionFailed": true,
+                "enableTraceLogging": false
+              },
+              "name": "Response"
+            },
+            "94ae64b2-9b4d-462d-99f3-14f034244d4d": {
+              "id": "94ae64b2-9b4d-462d-99f3-14f034244d4d",
+              "type": "schedule",
+              "selected": false,
+              "x": -145,
+              "y": 195,
+              "ports": [
+                {
+                  "id": "cln0traab0059356fj9yycovd",
+                  "type": "default",
+                  "x": 1,
+                  "y": 226.73,
+                  "name": "cln0traab005a356fykln3wqj",
+                  "parentNode": "94ae64b2-9b4d-462d-99f3-14f034244d4d",
+                  "links": [
+                    "87984f3e-8216-4861-b85b-d5b526c4b417"
+                  ],
+                  "in": false,
+                  "groupIndex": null,
+                  "groupPath": null,
+                  "fieldLabel": "Payload",
+                  "fieldPath": "data.nextNodes"
+                }
+              ],
+              "data": {
+                "configure": "Open Schedule Editor",
+                "nextNodes": [
+                  "e59d2f2f-c733-4295-9b6a-c0164da0ca9e"
+                ]
+              },
+              "debug": {
+                "breakpointEnabled": false,
+                "publishSubscribeClient": false,
+                "publishToMFGx": false
+              },
+              "logging": {
+                "executionMetrics": false,
+                "executionStarted": false,
+                "executionSucceeded": false,
+                "executionFailed": true,
+                "enableTraceLogging": false
+              },
+              "name": "Schedule"
+            },
+            "609eb435-84ff-484b-bb66-f251ccdc4d7f": {
+              "id": "609eb435-84ff-484b-bb66-f251ccdc4d7f",
+              "type": "query",
+              "selected": false,
+              "x": 1110,
+              "y": 265,
+              "ports": [
+                {
+                  "id": "cln0traad005j356f2fe46ozx",
+                  "type": "default",
+                  "x": 1102,
+                  "y": 296.73,
+                  "name": "cln0traad005k356fqtvr0kag",
+                  "parentNode": "609eb435-84ff-484b-bb66-f251ccdc4d7f",
+                  "links": [
+                    "ac450ea3-af75-4958-833d-01d2517d177f"
+                  ],
+                  "in": true
+                },
+                {
+                  "id": "cln0traad005l356fjvj4xn5c",
+                  "type": "default",
+                  "x": 1256,
+                  "y": 296.73,
+                  "name": "cln0traad005m356fuukqk5pj",
+                  "parentNode": "609eb435-84ff-484b-bb66-f251ccdc4d7f",
+                  "links": [
+                    "1f6e5a99-528f-4b98-b392-e56adfeb3586"
+                  ],
+                  "in": false,
+                  "groupIndex": null,
+                  "groupPath": null,
+                  "fieldLabel": "Output",
+                  "fieldPath": "data.nextNodes"
+                }
+              ],
+              "data": {
+                "api": "application",
+                "variablesTransform": "{\n  \"where\": {\n    \"name\": {\n      \"_in\": [$state.context.tempDataModels.name]\n    }\n  }\n}",
+                "nextNodes": [
+                  "58814433-843b-49ff-b90a-7cba805d99c7"
+                ],
+                "query": "query Query(\n  $where:ModelMapWhereInput  \n) {\n  modelMap(where:$where)\n}\n"
+              },
+              "debug": {
+                "breakpointEnabled": false,
+                "publishSubscribeClient": false,
+                "publishToMFGx": false
+              },
+              "logging": {
+                "executionMetrics": false,
+                "executionStarted": false,
+                "executionSucceeded": false,
+                "executionFailed": true,
+                "enableTraceLogging": false
+              },
+              "name": "Query Model Map",
+              "note": "Pull the modelMap fields based on the Data Models returned"
+            },
+            "e4a5254d-9913-4311-afbf-8fb60bcda0ca": {
+              "id": "e4a5254d-9913-4311-afbf-8fb60bcda0ca",
+              "type": "mergeContext",
+              "selected": false,
+              "x": 865,
+              "y": 265,
+              "ports": [
+                {
+                  "id": "cln0traag005v356fquk481lc",
+                  "type": "default",
+                  "x": 857,
+                  "y": 296.73,
+                  "name": "cln0traag005w356fwod6nss6",
+                  "parentNode": "e4a5254d-9913-4311-afbf-8fb60bcda0ca",
+                  "links": [
+                    "d13fef37-6d7a-4ced-888c-ac4c72a88088"
+                  ],
+                  "in": true
+                },
+                {
+                  "id": "cln0traag005x356f7uo7wuw0",
+                  "type": "default",
+                  "x": 1071.38,
+                  "y": 296.73,
+                  "name": "cln0traag005y356fqffkpn8c",
+                  "parentNode": "e4a5254d-9913-4311-afbf-8fb60bcda0ca",
+                  "links": [
+                    "ac450ea3-af75-4958-833d-01d2517d177f"
+                  ],
+                  "in": false,
+                  "groupIndex": null,
+                  "groupPath": null,
+                  "fieldLabel": "Output",
+                  "fieldPath": "data.nextNodes"
+                }
+              ],
+              "data": {
+                "transform": "{\n  \"tempDataModels\": [dataModel.edges.node]\n}",
+                "nextNodes": [
+                  "609eb435-84ff-484b-bb66-f251ccdc4d7f"
+                ]
+              },
+              "debug": {
+                "breakpointEnabled": false,
+                "publishSubscribeClient": false,
+                "publishToMFGx": false
+              },
+              "logging": {
+                "executionMetrics": false,
+                "executionStarted": false,
+                "executionSucceeded": false,
+                "executionFailed": true,
+                "enableTraceLogging": false
+              },
+              "name": "Merge Temp Models ToContext"
+            },
+            "97ee53d8-550a-4d41-a147-9e0fdafacbc7": {
+              "id": "97ee53d8-550a-4d41-a147-9e0fdafacbc7",
+              "type": "removeFromContext",
+              "selected": false,
+              "x": 300,
+              "y": 365,
+              "ports": [
+                {
+                  "id": "cln0traaj0067356fonw64onu",
+                  "type": "default",
+                  "x": 292,
+                  "y": 396.73,
+                  "name": "cln0traaj0068356f1cdqzbkc",
+                  "parentNode": "97ee53d8-550a-4d41-a147-9e0fdafacbc7",
+                  "links": [
+                    "a9e98d1b-4511-4f83-bbc9-84227dd47a9e"
+                  ],
+                  "in": true
+                },
+                {
+                  "id": "cln0traaj0069356fspeix4lz",
+                  "type": "default",
+                  "x": 456.69,
+                  "y": 396.73,
+                  "name": "cln0traaj006a356ft25i1civ",
+                  "parentNode": "97ee53d8-550a-4d41-a147-9e0fdafacbc7",
+                  "links": [
+                    "6736dd87-7d9e-4ac8-964b-2c82691159cc"
+                  ],
+                  "in": false,
+                  "groupIndex": null,
+                  "groupPath": null,
+                  "fieldLabel": "Output",
+                  "fieldPath": "data.nextNodes"
+                }
+              ],
+              "data": {
+                "transform": "[\n  \"tempDataModels\"\n]",
+                "nextNodes": [
+                  "ed86e7ee-fd1d-4b09-941c-f4611c6f7654"
+                ]
+              },
+              "debug": {
+                "breakpointEnabled": false,
+                "publishSubscribeClient": false,
+                "publishToMFGx": false
+              },
+              "logging": {
+                "executionMetrics": false,
+                "executionStarted": false,
+                "executionSucceeded": false,
+                "executionFailed": true,
+                "enableTraceLogging": false
+              },
+              "name": "Remove From Context"
+            },
+            "724b6200-4110-4a4a-bbe3-3dd8c91222fb": {
+              "id": "724b6200-4110-4a4a-bbe3-3dd8c91222fb",
+              "type": "integrateV2",
+              "selected": false,
+              "x": 1795,
+              "y": 365,
+              "ports": [
+                {
+                  "id": "cln0traal006j356f2hxk58ua",
+                  "type": "default",
+                  "x": 1787,
+                  "y": 396.73,
+                  "name": "cln0traal006k356f6bk1gy24",
+                  "parentNode": "724b6200-4110-4a4a-bbe3-3dd8c91222fb",
+                  "links": [
+                    "cfd24db6-adcd-4677-bc43-db264f9b5788"
+                  ],
+                  "in": true,
+                  "fieldLabel": "Payload"
+                },
+                {
+                  "id": "cln0traal006l356feyevwsed",
+                  "type": "default",
+                  "x": 1972.47,
+                  "y": 396.73,
+                  "name": "cln0traal006m356fa6qfdvwi",
+                  "parentNode": "724b6200-4110-4a4a-bbe3-3dd8c91222fb",
+                  "links": [
+                    "5942fd83-6155-4431-a1b8-54f90183d83c"
+                  ],
+                  "in": false,
+                  "groupIndex": null,
+                  "groupPath": null,
+                  "fieldLabel": "Output",
+                  "fieldPath": "data.nextNodes"
+                }
+              ],
+              "data": {
+                "requestTransform": "$state.context.CONSTANTS.CONFLUENCE.parentPage.{\n  \"method\": \"put\",\n  \"path\": \"/wiki/api/v2/pages/\" & id,\n  \"body\": {\n    \"id\": id,\n    \"spaceId\": $state.context.CONSTANTS.CONFLUENCE.spaceId,\n    \"status\": \"current\",\n    \"title\": title,\n    \"version\": {\n      \"number\": version.number + 1,\n      \"message\": \"Auto Generated Update By Fuuz\"\n    },\n    \"body\": {\n      \"value\": $jsonStringify(\n        {\n          \"type\":\"doc\",\n          \"content\": [\n            {\n              \"type\": \"paragraph\",\n              \"content\": [\n                {\n                  \"text\": $state.context.CONSTANTS.CONFLUENCE.appDescription,\n                  \"type\": \"text\"\n                 }\n               ]\n            }\n          ]\n        }\n      ),\n      \"representation\": \"atlas_doc_format\"\n    }\n  }\n}",
+                "responseTransform": "$",
+                "returnErrors": false,
+                "degreeOfParallelism": 10,
+                "connectionNameTransform": "$state.context.CONSTANTS.CONFLUENCE.connectionName",
+                "nextNodes": [
+                  "f8ae0836-7e1c-4a79-9f73-c74e744d6c53"
+                ]
+              },
+              "debug": {
+                "breakpointEnabled": false,
+                "publishSubscribeClient": false,
+                "publishToMFGx": false
+              },
+              "logging": {
+                "executionMetrics": false,
+                "executionStarted": false,
+                "executionSucceeded": false,
+                "executionFailed": true,
+                "enableTraceLogging": false
+              },
+              "name": "Update Data Models Page"
+            },
+            "5b9b7883-5bfe-4b2f-86d4-ff740815abeb": {
+              "id": "5b9b7883-5bfe-4b2f-86d4-ff740815abeb",
+              "type": "validate",
+              "selected": true,
+              "x": 480,
+              "y": 265,
+              "ports": [
+                {
+                  "id": "cln0udr0c00jw356fxl9svush",
+                  "type": "default",
+                  "x": 472,
+                  "y": 296.73,
+                  "name": "cln0udr0c00jx356f7f262clr",
+                  "parentNode": "5b9b7883-5bfe-4b2f-86d4-ff740815abeb",
+                  "links": [
+                    "9e90a163-478a-4c84-8e33-360f3fefc436"
+                  ],
+                  "in": true
+                },
+                {
+                  "id": "cln0udr0c00jy356fetnayx58",
+                  "type": "default",
+                  "x": 654.38,
+                  "y": 296.73,
+                  "name": "cln0udr0c00jz356fqq25andm",
+                  "parentNode": "5b9b7883-5bfe-4b2f-86d4-ff740815abeb",
+                  "links": [
+                    "92d04deb-f2b4-4f7d-b7b4-fdca6cb8aa3c"
+                  ],
+                  "in": false,
+                  "groupIndex": null,
+                  "groupPath": null,
+                  "fieldLabel": "Output",
+                  "fieldPath": "data.nextNodes"
+                }
+              ],
+              "data": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "payload": {
+                      "type": "object",
+                      "properties": {
+                        "REQUEST": {
+                          "type": "object",
+                          "properties": {
+                            "dataModels": {
+                              "type": "array",
+                              "minItems": 1,
+                              "items": {
+                                "type": "object",
+                                "oneOf": [
+                                  {
+                                    "properties": {
+                                      "name": {
+                                        "type": "string"
+                                      }
+                                    },
+                                    "required": [
+                                      "name"
+                                    ]
+                                  },
+                                  {
+                                    "properties": {
+                                      "id": {
+                                        "type": "string"
+                                      }
+                                    },
+                                    "required": [
+                                      "id"
+                                    ]
+                                  }
+                                ]
+                              }
+                            }
+                          },
+                          "required": [
+                            "dataModels"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "REQUEST"
+                      ]
+                    },
+                    "context": {
+                      "type": "object",
+                      "properties": {
+                        "CONSTANTS": {
+                          "type": "object",
+                          "properties": {
+                            "CONFLUENCE": {
+                              "type": "object",
+                              "properties": {
+                                "connectionName": {
+                                  "type": "string"
+                                },
+                                "spaceId": {
+                                  "type": "integer"
+                                },
+                                "publishNewDocumentation": {
+                                  "type": "boolean"
+                                },
+                                "parentPageTitle": {
+                                  "type": "string"
+                                },
+                                "appDescription": {
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "connectionName",
+                                "spaceId",
+                                "parentPageTitle"
+                              ]
+                            }
+                          },
+                          "required": [
+                            "REQUEST",
+                            "CONFLUENCE"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "CONSTANTS"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "payload",
+                    "context"
+                  ]
+                },
+                "nextNodes": [
+                  "057863db-4937-481b-9528-96a168c36b98"
+                ]
+              },
+              "debug": {
+                "breakpointEnabled": false,
+                "publishSubscribeClient": false,
+                "publishToMFGx": false
+              },
+              "logging": {
+                "executionMetrics": false,
+                "executionStarted": false,
+                "executionSucceeded": false,
+                "executionFailed": true,
+                "enableTraceLogging": false
+              },
+              "name": "Validate Payload/Context"
+            },
+            "56fd5917-7765-4d7d-8dff-ee99e80c81b0": {
+              "id": "56fd5917-7765-4d7d-8dff-ee99e80c81b0",
+              "type": "transform",
+              "selected": false,
+              "x": 260,
+              "y": 265,
+              "ports": [
+                {
+                  "id": "cln0ue04g00k9356fi5k523r3",
+                  "type": "default",
+                  "x": 252,
+                  "y": 296.73,
+                  "name": "cln0ue04g00ka356fhuvahpk4",
+                  "parentNode": "56fd5917-7765-4d7d-8dff-ee99e80c81b0",
+                  "links": [
+                    "9fdfb9ca-7e60-44a4-b79f-b0793884b110"
+                  ],
+                  "in": true
+                },
+                {
+                  "id": "cln0ue04g00kb356f36fwtt7e",
+                  "type": "default",
+                  "x": 443.22,
+                  "y": 296.73,
+                  "name": "cln0ue04g00kc356fowwnyyx9",
+                  "parentNode": "56fd5917-7765-4d7d-8dff-ee99e80c81b0",
+                  "links": [
+                    "9e90a163-478a-4c84-8e33-360f3fefc436"
+                  ],
+                  "in": false,
+                  "groupIndex": null,
+                  "groupPath": null,
+                  "fieldLabel": "Output",
+                  "fieldPath": "data.nextNodes"
+                }
+              ],
+              "data": {
+                "nextNodes": [
+                  "5b9b7883-5bfe-4b2f-86d4-ff740815abeb"
+                ],
+                "transform": "{\n  \"payload\": $,\n  \"context\": $state.context\n}"
+              },
+              "debug": {
+                "breakpointEnabled": false,
+                "publishSubscribeClient": false,
+                "publishToMFGx": false
+              },
+              "logging": {
+                "executionMetrics": false,
+                "executionStarted": false,
+                "executionSucceeded": false,
+                "executionFailed": true,
+                "enableTraceLogging": false
+              },
+              "name": "Format to Payload/Context"
+            },
+            "be05c93c-3e27-440d-a122-8f339c328b6f": {
+              "id": "be05c93c-3e27-440d-a122-8f339c328b6f",
+              "type": "debugSource",
+              "selected": false,
+              "x": -145,
+              "y": 400,
+              "ports": [
+                {
+                  "id": "cln0umarp00v8356f02avqi89",
+                  "type": "default",
+                  "x": 0.98,
+                  "y": 431.73,
+                  "name": "cln0umarp00v9356f6kc7kr2z",
+                  "parentNode": "be05c93c-3e27-440d-a122-8f339c328b6f",
+                  "links": [
+                    "181664ba-2040-44d3-bd79-0bd11c1ae86d"
+                  ],
+                  "in": false,
+                  "groupIndex": null,
+                  "groupPath": null,
+                  "fieldLabel": "Output",
+                  "fieldPath": "data.nextNodes"
+                }
+              ],
+              "data": {
+                "payload": {
+                  "REQUEST": {
+                    "dataModels": [],
+                    "publishNewDocumentation": false
+                  }
+                },
+                "context": {},
+                "nextNodes": [
+                  "e59d2f2f-c733-4295-9b6a-c0164da0ca9e"
+                ]
+              },
+              "debug": {
+                "breakpointEnabled": false,
+                "publishSubscribeClient": false,
+                "publishToMFGx": false
+              },
+              "logging": {
+                "executionMetrics": false,
+                "executionStarted": false,
+                "executionSucceeded": false,
+                "executionFailed": true,
+                "enableTraceLogging": false
+              },
+              "name": "Empty Array Test"
+            },
+            "7f93e12a-d4bf-40ce-a075-07f03c6d8d77": {
+              "id": "7f93e12a-d4bf-40ce-a075-07f03c6d8d77",
+              "type": "debugSource",
+              "selected": false,
+              "x": -145,
+              "y": 465,
+              "ports": [
+                {
+                  "id": "cln0unigt00xo356fhq1gggfo",
+                  "type": "default",
+                  "x": 50.14,
+                  "y": 496.73,
+                  "name": "cln0unigt00xp356farsbbw42",
+                  "parentNode": "7f93e12a-d4bf-40ce-a075-07f03c6d8d77",
+                  "links": [
+                    "2f41ac80-9f13-44ea-9e3c-1bbe620d0b95"
+                  ],
+                  "in": false,
+                  "groupIndex": null,
+                  "groupPath": null,
+                  "fieldLabel": "Output",
+                  "fieldPath": "data.nextNodes"
+                }
+              ],
+              "data": {
+                "payload": {
+                  "REQUEST": {
+                    "dataModels": [
+                      {
+                        "description": "It's a model"
+                      }
+                    ],
+                    "publishNewDocumentation": false
+                  }
+                },
+                "context": {},
+                "nextNodes": [
+                  "e59d2f2f-c733-4295-9b6a-c0164da0ca9e"
+                ]
+              },
+              "debug": {
+                "breakpointEnabled": false,
+                "publishSubscribeClient": false,
+                "publishToMFGx": false
+              },
+              "logging": {
+                "executionMetrics": false,
+                "executionStarted": false,
+                "executionSucceeded": false,
+                "executionFailed": true,
+                "enableTraceLogging": false
+              },
+              "name": "Improper Values Passed Test"
+            }
+          }
+        }
+      ],
+      "name": "Generate Confluence Data Model Documentation",
+      "type": "System",
+      "version": "0.0.7",
+      "walkthrough": {
+        "steps": []
+      }
+    }
+  }
+}

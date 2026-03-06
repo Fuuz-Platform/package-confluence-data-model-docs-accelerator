@@ -1,0 +1,624 @@
+{
+  "header": {
+    "id": "confluenceDataModelDocumentor",
+    "name": "Confluence Data Model Documenter",
+    "description": "This screen provides the ability to generate Confluence documentation for the Data Models selected.",
+    "active": true,
+    "isWidget": false
+  },
+  "version": {
+    "id": "cln0tospe001s018vhpu94d15",
+    "number": "0.0.1",
+    "description": "This screen provides the ability to generate Confluence documentation for the Data Models selected.",
+    "screenId": "confluenceDataModelDocumentor",
+    "design": {
+      "components": [
+        {
+          "type": "canvas",
+          "name": "DataModelTable",
+          "tabTitle": "Data Model Table",
+          "props": {
+            "design": {
+              "ROOT": {
+                "type": {
+                  "resolvedName": "Screen"
+                },
+                "isCanvas": true,
+                "props": {
+                  "padding": 0,
+                  "margin": 0,
+                  "flexDirection": "column",
+                  "flexWrap": false,
+                  "alignItems": "stretch",
+                  "justifyContent": "flex-start",
+                  "width": "100%",
+                  "height": "100%",
+                  "hidden": false,
+                  "flexGrow": false,
+                  "shadow": false,
+                  "borderRadius": 0
+                },
+                "displayName": "Screen",
+                "custom": {
+                  "elementName": "Screen",
+                  "elementCounts": {
+                    "Container": 3,
+                    "Action Button": 5,
+                    "Form": 1,
+                    "Table": 1,
+                    "Text": 4,
+                    "Combobox": 1,
+                    "Table Column": 7,
+                    "Flow Button": 2
+                  },
+                  "module": {
+                    "id": "dataModeling",
+                    "group": {
+                      "id": "system"
+                    }
+                  },
+                  "dataModel": "DataModel",
+                  "template": "table"
+                },
+                "parent": null,
+                "hidden": false,
+                "nodes": [
+                  "OpYNMxVluk",
+                  "D73fHRyBA_",
+                  "9YZQnXTrc7"
+                ],
+                "linkedNodes": {}
+              },
+              "OpYNMxVluk": {
+                "type": {
+                  "resolvedName": "Container"
+                },
+                "isCanvas": true,
+                "props": {
+                  "padding": 0,
+                  "margin": 0,
+                  "flexDirection": "column",
+                  "flexWrap": false,
+                  "alignItems": "stretch",
+                  "justifyContent": "flex-start",
+                  "width": "100%",
+                  "height": "auto",
+                  "hidden": false,
+                  "flexGrow": false,
+                  "shadow": false,
+                  "borderRadius": 0,
+                  "collapsible": false,
+                  "collapsedFooter": false,
+                  "collapsedSize": 0,
+                  "collapsedByDefault": false,
+                  "onClickTransform": false
+                },
+                "displayName": "Container",
+                "custom": {
+                  "elementName": "Container1"
+                },
+                "parent": "ROOT",
+                "hidden": false,
+                "nodes": [
+                  "dO72h770WO"
+                ],
+                "linkedNodes": {}
+              },
+              "dO72h770WO": {
+                "type": {
+                  "resolvedName": "Form"
+                },
+                "isCanvas": true,
+                "props": {
+                  "query": {
+                    "api": "Application",
+                    "model": "DataModel",
+                    "query": null,
+                    "dataPath": "edges[0]",
+                    "dataTransform": {
+                      "transform": null,
+                      "remote": true
+                    },
+                    "dataSubscription": {
+                      "enabled": false
+                    },
+                    "autoLoad": false
+                  },
+                  "blockNavigationWhenDirty": false
+                },
+                "displayName": "Form",
+                "custom": {
+                  "elementName": "Form1"
+                },
+                "parent": "OpYNMxVluk",
+                "hidden": false,
+                "nodes": [
+                  "qVZ6eZnj2B"
+                ],
+                "linkedNodes": {}
+              },
+              "qVZ6eZnj2B": {
+                "type": {
+                  "resolvedName": "Container"
+                },
+                "isCanvas": true,
+                "props": {
+                  "padding": 8,
+                  "margin": 1,
+                  "flexDirection": "row",
+                  "flexWrap": true,
+                  "alignItems": "flex-end",
+                  "justifyContent": "flex-start",
+                  "width": "100%",
+                  "height": "auto",
+                  "hidden": false,
+                  "flexGrow": false,
+                  "shadow": false,
+                  "borderRadius": 0,
+                  "collapsible": true,
+                  "collapsedFooter": false,
+                  "collapsedSize": 0,
+                  "collapsedByDefault": false,
+                  "onClickTransform": false,
+                  "background": "paper"
+                },
+                "displayName": "Container",
+                "custom": {
+                  "elementName": "Container2"
+                },
+                "parent": "dO72h770WO",
+                "hidden": false,
+                "nodes": [
+                  "v-aktiJ2N1",
+                  "cln0tu6ko007k356fntc8lmw3",
+                  "ssiVtCd5-y"
+                ],
+                "linkedNodes": {}
+              },
+              "v-aktiJ2N1": {
+                "type": {
+                  "resolvedName": "TextInput"
+                },
+                "isCanvas": false,
+                "props": {
+                  "type": "text",
+                  "padding": 8,
+                  "width": "300px",
+                  "height": "auto",
+                  "label": "Id",
+                  "validation": {
+                    "required": false
+                  },
+                  "visible": true,
+                  "formElement": "Form1",
+                  "dataPath": "id",
+                  "field": "id",
+                  "description": "The unique identifier of the Data Model.",
+                  "element": "TextInput",
+                  "predicate": "_contains",
+                  "target": {
+                    "dataPath": "id._contains"
+                  }
+                },
+                "displayName": "Text",
+                "custom": {
+                  "elementName": "Text1"
+                },
+                "parent": "qVZ6eZnj2B",
+                "hidden": false,
+                "nodes": [],
+                "linkedNodes": {}
+              },
+              "ssiVtCd5-y": {
+                "type": {
+                  "resolvedName": "Combobox"
+                },
+                "isCanvas": false,
+                "props": {
+                  "type": "combobox",
+                  "padding": 8,
+                  "width": "300px",
+                  "height": "auto",
+                  "label": "Module",
+                  "multiselect": false,
+                  "isClearable": true,
+                  "api": "Application",
+                  "validation": {
+                    "required": false
+                  },
+                  "visible": true,
+                  "formElement": "Form1",
+                  "dataPath": "module",
+                  "field": "module",
+                  "description": "A relation to the module group the module is in.",
+                  "element": "Combobox",
+                  "queryType": "Module",
+                  "labelField": "name",
+                  "labelPath": "name",
+                  "additionalFields": "name",
+                  "target": {
+                    "dataPath": "module.id._eq"
+                  },
+                  "predicate": "_eq",
+                  "linkTarget": {
+                    "__transform": "\"/system/configuration/modules/\" & data.module.id"
+                  },
+                  "query": {
+                    "fields": [
+                      "module.id",
+                      "module.name"
+                    ]
+                  }
+                },
+                "displayName": "Combobox",
+                "custom": {
+                  "elementName": "Combobox1"
+                },
+                "parent": "qVZ6eZnj2B",
+                "hidden": false,
+                "nodes": [],
+                "linkedNodes": {}
+              },
+              "D73fHRyBA_": {
+                "type": {
+                  "resolvedName": "Container"
+                },
+                "isCanvas": true,
+                "props": {
+                  "padding": 0,
+                  "margin": 1,
+                  "flexDirection": "row",
+                  "flexWrap": true,
+                  "alignItems": "stretch",
+                  "justifyContent": "flex-start",
+                  "width": "100%",
+                  "height": "auto",
+                  "hidden": false,
+                  "flexGrow": false,
+                  "shadow": false,
+                  "borderRadius": 0,
+                  "collapsible": false,
+                  "collapsedFooter": false,
+                  "collapsedSize": 0,
+                  "collapsedByDefault": false,
+                  "onClickTransform": false,
+                  "background": "paper"
+                },
+                "displayName": "Container",
+                "custom": {
+                  "elementName": "Container3"
+                },
+                "parent": "ROOT",
+                "hidden": false,
+                "nodes": [
+                  "kDpPTMi3Lp",
+                  "GzafUyldN"
+                ],
+                "linkedNodes": {}
+              },
+              "kDpPTMi3Lp": {
+                "type": {
+                  "resolvedName": "ActionButton"
+                },
+                "isCanvas": false,
+                "props": {
+                  "margin": 6,
+                  "buttonColor": "primary",
+                  "icon": {
+                    "icon": "search",
+                    "variant": "duotone",
+                    "size": "icon"
+                  },
+                  "width": "76px",
+                  "height": "48px",
+                  "disabled": false,
+                  "hidden": false,
+                  "useIconButton": false,
+                  "action": [
+                    {
+                      "type": "transformation",
+                      "transformation": "$components.Table1.fn.search()",
+                      "remote": false
+                    }
+                  ],
+                  "title": "Search"
+                },
+                "displayName": "Action Button",
+                "custom": {
+                  "elementName": "ActionButton1"
+                },
+                "parent": "D73fHRyBA_",
+                "hidden": false,
+                "nodes": [],
+                "linkedNodes": {}
+              },
+              "9YZQnXTrc7": {
+                "type": {
+                  "resolvedName": "Table"
+                },
+                "isCanvas": true,
+                "props": {
+                  "margin": 1,
+                  "width": "100%",
+                  "height": "auto",
+                  "flexGrow": true,
+                  "query": {
+                    "api": "Application",
+                    "model": "DataModel",
+                    "query": null,
+                    "dataPath": "edges",
+                    "dataTransform": {
+                      "transform": null,
+                      "remote": true
+                    },
+                    "dataSubscription": {
+                      "enabled": false
+                    },
+                    "autoLoad": true,
+                    "fields": [
+                      "id"
+                    ],
+                    "parameters": "{  \n  \"filter\": {\n    \"currentDataModelDeploymentId\": {\n      \"_isNull\": false\n    }\n  }\n}\n"
+                  },
+                  "selectable": "single",
+                  "showToolPanels": true,
+                  "showStatusBar": true,
+                  "enableGrouping": true,
+                  "enableCharts": true,
+                  "showColumnMenu": true,
+                  "enableRowDragging": false,
+                  "masterDetail": false,
+                  "filterFormName": "Form1",
+                  "description": "The DataModel model represents an MFGx Data Model definition.",
+                  "rowMultiSelectWithClick": false
+                },
+                "displayName": "Table",
+                "custom": {
+                  "elementName": "Table1"
+                },
+                "parent": "ROOT",
+                "hidden": false,
+                "nodes": [
+                  "tfe23N1hHr",
+                  "zs0Eq-Mec",
+                  "n31PxEXwYv",
+                  "_VW4KXNb6M",
+                  "c8bj1noZbA"
+                ],
+                "linkedNodes": {}
+              },
+              "tfe23N1hHr": {
+                "type": {
+                  "resolvedName": "TableColumn"
+                },
+                "isCanvas": false,
+                "props": {
+                  "label": "Id",
+                  "format": "text",
+                  "field": "id",
+                  "dataPath": "id",
+                  "description": "The unique identifier of the Data Model.",
+                  "linkTarget": {
+                    "__transform": "\"/system/dataModeling/dataModels/\" & data.id"
+                  },
+                  "query": {
+                    "fields": [
+                      "id"
+                    ]
+                  }
+                },
+                "displayName": "Table Column",
+                "custom": {
+                  "elementName": "TableColumn1"
+                },
+                "parent": "9YZQnXTrc7",
+                "hidden": false,
+                "nodes": [],
+                "linkedNodes": {}
+              },
+              "n31PxEXwYv": {
+                "type": {
+                  "resolvedName": "TableColumn"
+                },
+                "isCanvas": false,
+                "props": {
+                  "label": "Description",
+                  "format": "markdown",
+                  "field": "description",
+                  "dataPath": "description",
+                  "description": "The description of the Data Model."
+                },
+                "displayName": "Table Column",
+                "custom": {
+                  "elementName": "TableColumn2"
+                },
+                "parent": "9YZQnXTrc7",
+                "hidden": false,
+                "nodes": [],
+                "linkedNodes": {}
+              },
+              "_VW4KXNb6M": {
+                "type": {
+                  "resolvedName": "TableColumn"
+                },
+                "isCanvas": false,
+                "props": {
+                  "label": "Module Name",
+                  "format": "text",
+                  "field": "module.name",
+                  "dataPath": "module.name",
+                  "description": "The friendly name of the module.",
+                  "linkTarget": {
+                    "__transform": "\"/system/configuration/modules/\" & data.module.id"
+                  },
+                  "query": {
+                    "fields": [
+                      "module.id",
+                      "module.name"
+                    ]
+                  }
+                },
+                "displayName": "Table Column",
+                "custom": {
+                  "elementName": "TableColumn5"
+                },
+                "parent": "9YZQnXTrc7",
+                "hidden": false,
+                "nodes": [],
+                "linkedNodes": {}
+              },
+              "c8bj1noZbA": {
+                "type": {
+                  "resolvedName": "TableColumn"
+                },
+                "isCanvas": false,
+                "props": {
+                  "label": "Module Description",
+                  "format": "markdown",
+                  "field": "module.description",
+                  "dataPath": "module.description",
+                  "description": "The description of the module."
+                },
+                "displayName": "Table Column",
+                "custom": {
+                  "elementName": "TableColumn6"
+                },
+                "parent": "9YZQnXTrc7",
+                "hidden": false,
+                "nodes": [],
+                "linkedNodes": {}
+              },
+              "zs0Eq-Mec": {
+                "type": {
+                  "resolvedName": "TableColumn"
+                },
+                "isCanvas": false,
+                "props": {
+                  "label": "Name",
+                  "format": "text",
+                  "dataPath": "name",
+                  "description": "The name of the Data Model.",
+                  "field": "name"
+                },
+                "displayName": "Table Column",
+                "custom": {
+                  "elementName": "TableColumn7"
+                },
+                "parent": "9YZQnXTrc7",
+                "hidden": false,
+                "nodes": [],
+                "linkedNodes": {}
+              },
+              "cln0tu6ko007k356fntc8lmw3": {
+                "type": {
+                  "resolvedName": "TextInput"
+                },
+                "isCanvas": false,
+                "props": {
+                  "type": "text",
+                  "padding": 8,
+                  "width": "300px",
+                  "height": "auto",
+                  "label": "Name",
+                  "validation": {
+                    "required": false
+                  },
+                  "visible": true,
+                  "formElement": "Form1",
+                  "dataPath": "name",
+                  "field": "name",
+                  "description": "The name of the Data Model.",
+                  "element": "TextInput",
+                  "predicate": "_contains",
+                  "target": {
+                    "dataPath": "name._contains"
+                  }
+                },
+                "displayName": "Text",
+                "custom": {
+                  "elementName": "Text4"
+                },
+                "parent": "qVZ6eZnj2B",
+                "hidden": false,
+                "nodes": [],
+                "linkedNodes": {}
+              },
+              "GzafUyldN": {
+                "type": {
+                  "resolvedName": "ActionButton"
+                },
+                "isCanvas": false,
+                "props": {
+                  "margin": 6,
+                  "buttonColor": "primary",
+                  "icon": {
+                    "variant": "duotone",
+                    "size": "icon",
+                    "icon": "sync"
+                  },
+                  "width": "76px",
+                  "height": "48px",
+                  "disabled": {
+                    "__transform": "$count($components.Table1.selectedRows) = 0",
+                    "__dynamicFields": {
+                      "payload": null,
+                      "context": []
+                    },
+                    "__cacheKey": "",
+                    "__remote": false
+                  },
+                  "hidden": false,
+                  "useIconButton": false,
+                  "action": [
+                    {
+                      "type": "flow",
+                      "flowId": "generateConfluenceDataModelDocumentation",
+                      "transforms": {
+                        "pre": "{\n  \"REQUEST\": {    \n    \"dataModels\": [\n      $components.Table1.selectedRows.{\n        \"id\": id\n      }\n    ]\n  }\n}"
+                      }
+                    },
+                    {
+                      "type": "message",
+                      "title": {
+                        "__transform": "\"Documentation Updated\""
+                      },
+                      "message": {
+                        "__transform": "\"Documentation has been updated for the selected models\""
+                      },
+                      "data": {
+                        "__transform": "{    \n  \"dataModels\": [\n    $components.Table1.selectedRows\n  ]\n}"
+                      },
+                      "severity": {
+                        "__transform": "\"success\""
+                      }
+                    }
+                  ],
+                  "title": "Document Data Model"
+                },
+                "displayName": "Action Button",
+                "custom": {
+                  "elementName": "ActionButton5"
+                },
+                "parent": "D73fHRyBA_",
+                "hidden": false,
+                "nodes": [],
+                "linkedNodes": {}
+              }
+            }
+          }
+        }
+      ]
+    }
+  },
+  "routes": [
+    {
+      "id": "cln0ursg1001v018v55jf7ggx",
+      "title": "Confluence Data Model Documenter",
+      "path": "/system/confluence/documentation/dataModels",
+      "moduleId": "confluence",
+      "screenId": "confluenceDataModelDocumentor",
+      "isMenuAccessible": true,
+      "submenu": ""
+    }
+  ]
+}

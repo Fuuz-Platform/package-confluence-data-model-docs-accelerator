@@ -1,0 +1,203 @@
+{
+  "packageDefinition": {
+    "name": "Confluence Data Model Documentation"
+  },
+  "packageDefinitionVersion": {
+    "id": "clnw16pzh000i356fi4u7cwl0",
+    "version": "1.0.0"
+  },
+  "packageDefinitionSelections": [
+    {
+      "id": "clnw16qbl000j356fi6say8bw",
+      "api": "application",
+      "modelName": "Screen",
+      "selected": [
+        {
+          "id": "confluenceDataModelDocumentor",
+          "label": "Confluence Data Model Documenter"
+        }
+      ],
+      "fields": [
+        {
+          "name": "id"
+        },
+        {
+          "name": "name"
+        },
+        {
+          "name": "description"
+        },
+        {
+          "name": "active"
+        },
+        {
+          "name": "isWidget"
+        }
+      ],
+      "metadata": {
+        "dataTransform": "$",
+        "labelField": [
+          {
+            "name": "name"
+          }
+        ]
+      },
+      "packageDefinitionVersionId": "clnw16pzh000i356fi4u7cwl0"
+    },
+    {
+      "id": "clnw16qbl000k356f4dfrcndm",
+      "api": "application",
+      "modelName": "ApplicationConfiguration",
+      "selected": [
+        {
+          "id": "confluenceDocumentationIntegration",
+          "label": "Confluence Documentation Integration"
+        }
+      ],
+      "fields": [
+        {
+          "name": "id"
+        },
+        {
+          "name": "name"
+        },
+        {
+          "name": "description"
+        },
+        {
+          "name": "configSchema"
+        },
+        {
+          "name": "moduleId"
+        }
+      ],
+      "metadata": {
+        "dataTransform": "$~>| $ | {\n  \"configJson\": {\n    \"connection\": { \"id\": \"selectAConnection\", \"name\": \"Select Confluence Connection\", \"label\": \"Select Confluence Connection\" },\n    \"spaceId\": 0\n  }\n}|",
+        "labelField": [
+          {
+            "name": "name"
+          }
+        ]
+      },
+      "packageDefinitionVersionId": "clnw16pzh000i356fi4u7cwl0"
+    },
+    {
+      "id": "clnw16qbl000l356f1hmknfqg",
+      "api": "application",
+      "modelName": "ModuleGroup",
+      "selected": [
+        {
+          "id": "documentation",
+          "label": "Documentation"
+        }
+      ],
+      "fields": [
+        {
+          "name": "id"
+        },
+        {
+          "name": "name"
+        },
+        {
+          "name": "icon"
+        }
+      ],
+      "metadata": {
+        "dataTransform": "$",
+        "labelField": [
+          {
+            "name": "name"
+          }
+        ],
+        "insertBefore": [
+          {
+            "modelName": "Module"
+          }
+        ]
+      },
+      "packageDefinitionVersionId": "clnw16pzh000i356fi4u7cwl0"
+    },
+    {
+      "id": "clnw16qbl000m356fl6ai1fu4",
+      "api": "application",
+      "modelName": "Module",
+      "selected": [
+        {
+          "id": "confluence",
+          "label": "Confluence"
+        }
+      ],
+      "fields": [
+        {
+          "name": "id"
+        },
+        {
+          "name": "name"
+        },
+        {
+          "name": "description"
+        },
+        {
+          "name": "moduleGroupId"
+        }
+      ],
+      "metadata": {
+        "labelField": [
+          {
+            "name": "name"
+          }
+        ],
+        "insertBefore": [
+          {
+            "modelName": "DataFlow"
+          }
+        ]
+      },
+      "packageDefinitionVersionId": "clnw16pzh000i356fi4u7cwl0"
+    },
+    {
+      "id": "clnw16qbl000n356f54fii8ur",
+      "api": "application",
+      "modelName": "DataFlow",
+      "selected": [
+        {
+          "id": "getPagesInConfluenceSpace",
+          "label": "Get Pages in Confluence Space"
+        },
+        {
+          "id": "generateConfluenceDataModelDocumentation",
+          "label": "Generate Confluence Data Model Documentation"
+        }
+      ],
+      "fields": [
+        {
+          "name": "id"
+        },
+        {
+          "name": "name"
+        },
+        {
+          "name": "description"
+        },
+        {
+          "name": "active"
+        },
+        {
+          "name": "dataFlowTypeId"
+        },
+        {
+          "name": "moduleId"
+        }
+      ],
+      "metadata": {
+        "dataTransform": "$",
+        "labelField": [
+          {
+            "name": "name"
+          }
+        ]
+      },
+      "packageDefinitionVersionId": "clnw16pzh000i356fi4u7cwl0"
+    }
+  ]
+}
