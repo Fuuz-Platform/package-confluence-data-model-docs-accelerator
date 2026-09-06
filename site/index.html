@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>confluence-data-model-docs &mdash; Fuuz Accelerator</title>
+<meta name="description" content="Fuuz accelerator: Auto-generates Confluence documentation from Fuuz data model definitions">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://accelerators.fuuz.com/package-confluence-data-model-docs-accelerator/">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://accelerators.fuuz.com/package-confluence-data-model-docs-accelerator/">
+<meta property="og:site_name" content="Fuuz Accelerators">
+<meta property="og:title" content="confluence-data-model-docs &mdash; Fuuz Accelerator">
+<meta property="og:description" content="Fuuz accelerator: Auto-generates Confluence documentation from Fuuz data model definitions">
+<link rel="icon" href="assets/appicon-violet.svg">
+<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="prose.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareSourceCode",
+  "name": "confluence-data-model-docs",
+  "url": "https://accelerators.fuuz.com/package-confluence-data-model-docs-accelerator/",
+  "description": "Fuuz accelerator: Auto-generates Confluence documentation from Fuuz data model definitions",
+  "codeRepository": "https://github.com/Fuuz-Platform/package-confluence-data-model-docs-accelerator",
+  "applicationCategory": "BusinessApplication",
+  "runtimePlatform": "Fuuz",
+  "author": {
+    "@type": "Organization",
+    "name": "Fuuz",
+    "url": "https://fuuz.com"
+  }
+}
+</script>
+</head>
+<body>
+<header class="topbar">
+  <div class="wrap">
+    <a class="logo" href="../"><img src="assets/logo-horizontal-on-midnight.svg" alt="Fuuz"></a>
+    <span class="section">Accelerators</span>
+    <nav><a href="#package-metadata">Package Metadata</a><a href="#components">Components</a><a href="#overview">Overview</a><a href="https://github.com/Fuuz-Platform/package-confluence-data-model-docs-accelerator">GitHub</a></nav>
+  </div>
+</header>
+<main>
+<div class="wrap hero">
+  <p class="eyebrow">Accelerator &middot; Integration package</p>
+  <h1>confluence-data-model-docs<span class="accent"></span></h1>
+  <p class="lede">Fuuz accelerator: Auto-generates Confluence documentation from Fuuz data model definitions</p>
+  <div class="ctas">
+    <a class="cta cta-primary" href="https://github.com/Fuuz-Platform/package-confluence-data-model-docs-accelerator">Get the package</a>
+    <a class="cta cta-secondary" href="../">All accelerators</a>
+  </div>
+</div>
+<section>
+  <div class="wrap prose">
+<p>Utility package for auto-generating Confluence documentation from Fuuz data model definitions. Connects to the Confluence REST API to create or update wiki pages describing each data model's fields, types, and relationships directly from the platform schema.</p>
+<blockquote>
+<p><strong>Note:</strong> This is a standalone utility tool, not an application accelerator. It integrates with an Atlassian Confluence space to keep data model documentation in sync with the live platform schema.</p>
+</blockquote>
+<h2 id="package-metadata">Package Metadata</h2>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Package Name</td>
+<td><code>Confluence Data Model Documentation</code></td>
+</tr>
+<tr>
+<td>Version</td>
+<td><code>1.0.0</code></td>
+</tr>
+<tr>
+<td>Platform Version</td>
+<td><code>2023.10.0</code></td>
+</tr>
+<tr>
+<td>Type</td>
+<td>Utility / Documentation Tool</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="components">Components</h2>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Count</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Data Flows</td>
+<td>2</td>
+</tr>
+<tr>
+<td>Screens</td>
+<td>1</td>
+</tr>
+<tr>
+<td>Seed Data</td>
+<td>3 tables</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="overview">Overview</h2>
+<p>This package provides a Fuuz-native documentation pipeline. It queries the Fuuz GraphQL System API to enumerate data models and their field definitions, then pushes formatted wiki pages into a Confluence space via the Confluence REST API. Teams using Confluence as their internal knowledge base can use this to eliminate manual documentation maintenance — the documentation regenerates on demand from the live platform schema.</p>
+<h2 id="data-flows">Data Flows</h2>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>Flow</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Generate Confluence Data Model Documentation</code></td>
+<td>Main orchestration flow. Queries all data models from the Fuuz System API, formats each model's fields into structured Confluence storage-format markup, and creates or updates pages within a designated Confluence space.</td>
+</tr>
+<tr>
+<td><code>Get Pages in Confluence Space</code></td>
+<td>Helper flow. Retrieves existing page inventory from a Confluence space, enabling the documentation generator to determine whether to create new pages or update existing ones.</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="screens">Screens</h2>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>Screen</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Confluence Data Model Documenter</code></td>
+<td>Single-screen UI for triggering documentation generation. Provides connection status, space configuration, and a run button for initiating the documentation push.</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="seed-data-configuration">Seed Data / Configuration</h2>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Details</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ApplicationConfiguration</code></td>
+<td><code>Confluence Documentation Integration</code> — stores Confluence base URL, space key, and auth settings</td>
+</tr>
+<tr>
+<td><code>Module</code></td>
+<td><code>Confluence</code></td>
+</tr>
+<tr>
+<td><code>ModuleGroup</code></td>
+<td><code>Documentation</code></td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="usage-notes">Usage Notes</h2>
+<ul>
+<li>Requires a Confluence Cloud or Server instance with REST API access enabled</li>
+<li>Authentication credentials (API token + base URL) must be configured in the <code>Confluence Documentation Integration</code> application configuration record before running</li>
+<li>The <code>Get Pages in Confluence Space</code> flow is called internally by the main generator to check for existing pages and avoid duplicates</li>
+<li>Designed to be run on demand or scheduled; does not require a trigger event from the MES/WMS application</li>
+<li>Compatible with platform version 2023.10.0 and later</li>
+</ul>
+<h2 id="package-structure">Package Structure</h2>
+<pre><code>confluence-data-model-docs/
+  data/             (seed configuration records)
+  dataFlows/        (2 unique flows, 4 files total)
+  definition.json
+  manifest.json
+  package-data.json
+  screens/          (1 unique screen, 2 files total)
+</code></pre>
+  </div>
+</section>
+</main>
+<footer>
+  <div class="wrap">
+    <p>Fuuz&reg; is an Enterprise Industrial Intelligence Platform.
+      <a href="https://accelerators.fuuz.com/">All accelerators</a> &middot;
+      <a href="https://github.com/Fuuz-Platform/package-confluence-data-model-docs-accelerator">Source</a> &middot;
+      <a href="https://fuuz.com">fuuz.com</a></p>
+  </div>
+</footer>
+</body>
+</html>
