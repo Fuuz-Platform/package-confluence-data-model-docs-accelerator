@@ -65,3 +65,9 @@ confluence-data-model-docs/
   package-data.json
   screens/          (1 unique screen, 2 files total)
 ```
+
+## Service levels
+
+No service level agreement applies to anything published here. It becomes a supported
+deliverable only once it has been implemented by a Fuuz services professional or an
+approved Fuuz partner.
